@@ -1,0 +1,18 @@
+import { createGlobalStyle } from 'styled-components';
+
+const GlobalStyle = createGlobalStyle`
+html {
+  box-sizing: border-box;
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+}
+button {
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+}
+input {
+  font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+  -webkit-appearance: none;
+}
+`;
+
+export default GlobalStyle;
