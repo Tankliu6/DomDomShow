@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import loading from '../img/loading.gif';
-import loadingBackground from '../img/loading-background.png';
+import React from "react";
+import styled from "styled-components";
+import loading from "../img/loading.gif";
+import loadingBackground from "../img/loading-background.png";
 function Loading(props) {
     const { isLoading, setIsLoading } = props;
     return (
@@ -14,7 +14,7 @@ function Loading(props) {
 }
 
 const LoadingLayer = styled.div`
-    display: ${(props) => (props.isLoading ? 'block' : 'none')};
+    display: ${(props) => (props.isLoading ? "block" : "none")};
     background-image: url(${loadingBackground});
     background-position: center;
     background-size: cover;

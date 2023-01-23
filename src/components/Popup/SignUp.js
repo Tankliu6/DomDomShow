@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from "react";
 import {
     Wrapper,
     Title,
@@ -8,11 +8,11 @@ import {
     Notice,
     CloseButton,
     Hint,
-} from './style/sharedStyle';
-import Close from '../../img/close-btn.png';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { db, auth } from '../../firebase';
-import { useNavigate } from 'react-router-dom';
+} from "./style/sharedStyle";
+import Close from "../../img/close-btn.png";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { db, auth } from "../../firebase";
+import { useNavigate } from "react-router-dom";
 const SignUp = (props) => {
     const navigate = useNavigate();
     const {
@@ -54,7 +54,7 @@ const SignUp = (props) => {
                     // signup ok
                     const user = userCredential.user;
                     console.log(user);
-                    navigate('/');
+                    navigate("/");
                 })
                 .catch((error) => {
                     // signup fail
@@ -62,7 +62,7 @@ const SignUp = (props) => {
                     const errorMessage = error.message;
                     console.log(errorCode);
                     console.log(errorMessage);
-                    navigate('/');
+                    navigate("/");
                 })
                 .finally(() => {
                     setIsLoading(false);
@@ -70,7 +70,7 @@ const SignUp = (props) => {
         }
     }
 
-    console.log('fire');
+    console.log("fire");
 
     return (
         <Wrapper>

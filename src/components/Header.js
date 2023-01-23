@@ -1,20 +1,20 @@
-import styled from 'styled-components';
-import React from 'react';
-import { useState, useEffect } from 'react';
-import SignIn from './Popup/SignIn';
-import SignUp from './Popup/SignUp';
+import styled from "styled-components";
+import React from "react";
+import { useState, useEffect } from "react";
+import SignIn from "./Popup/SignIn";
+import SignUp from "./Popup/SignUp";
 import {
     MEDIA_QUERY_MIN_360,
     MEDIA_QUERY_MIN_768,
     MEDIA_QUERY_MIN_1080,
     MEDIA_QUERY_MIN_1200,
     MEDIA_QUERY_MAX_1200,
-} from '../global/constant/media';
-import { deleteApp } from 'firebase/app';
-import { db, auth } from '../firebase';
-import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
-import Loading from './Loading';
+} from "../global/constant/media";
+import { deleteApp } from "firebase/app";
+import { db, auth } from "../firebase";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import Loading from "./Loading";
 
 const Header = (props) => {
     const { isLoggedIn, setIsLoggedIn, isLoading, setIsLoading } = props;
@@ -36,7 +36,7 @@ const Header = (props) => {
             .then(() => {
                 // logout ok
                 setIsLoggedIn(false);
-                console.log('logout');
+                console.log("logout");
             })
             .catch((error) => {
                 // error
@@ -95,7 +95,7 @@ const MyDrawWrapper = (props) => {
     const navigate = useNavigate();
     function handleRedirectToMemberPage() {
         if (isLoggedIn) {
-            navigate('/member/collection');
+            navigate("/member/collection");
         } else {
             setShowSignUp(true);
         }
@@ -106,7 +106,7 @@ const MyDrawWrapper = (props) => {
 function TitleWrapper() {
     const navigate = useNavigate();
     function wayToHome() {
-        navigate('/');
+        navigate("/");
     }
     return <Title onClick={wayToHome}>DomDomShow</Title>;
 }

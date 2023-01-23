@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components';
-import background from '../../img/welcome-background.png';
+import React from "react";
+import styled from "styled-components";
+import background from "../../img/welcome-background.png";
 
 const Welcome = () => {
     return <Content></Content>;

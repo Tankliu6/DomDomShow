@@ -1,5 +1,5 @@
-import { auth } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export function AuthState(props) {
     const { isLoggedIn, setIsLoggedIn } = props;
@@ -11,7 +11,7 @@ export function AuthState(props) {
             setIsLoggedIn(true);
         } else {
             // not login yet
-            console.log('Not login yet');
+            console.log("Not login yet");
             setIsLoggedIn(false);
         }
     });

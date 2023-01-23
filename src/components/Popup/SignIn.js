@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from "react";
 import {
     Wrapper,
     Title,
@@ -8,11 +8,11 @@ import {
     Notice,
     CloseButton,
     Hint,
-} from './style/sharedStyle';
-import Close from '../../img/close-btn.png';
-import { db, auth } from '../../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+} from "./style/sharedStyle";
+import Close from "../../img/close-btn.png";
+import { db, auth } from "../../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 const SignIn = (props) => {
     const navigate = useNavigate();
@@ -55,7 +55,7 @@ const SignIn = (props) => {
                     setIsLoggedIn(true);
                     setShowSignIn(false);
                     console.log(user);
-                    navigate('/member/collection');
+                    navigate("/member/collection");
                 })
                 .catch((error) => {
                     // login fail
@@ -64,7 +64,7 @@ const SignIn = (props) => {
                     setIsLoggedIn(false);
                     console.log(errorCode);
                     console.log(errorMessage);
-                    navigate('/');
+                    navigate("/");
                 })
                 .finally(() => {
                     setIsLoading(false);

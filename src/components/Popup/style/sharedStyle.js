@@ -1,5 +1,5 @@
-import styled from 'styled-components';
-import Close from '../../../img/close-btn.png';
+import styled from "styled-components";
+import Close from "../../../img/close-btn.png";
 
 // style-components
 export const Wrapper = styled.div`
