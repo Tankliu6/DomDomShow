@@ -16,9 +16,9 @@ function SvgCanvas() {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [svgPanMode, setSvgPanMode] = useState({grab: "default", grabbing: "default"});
 
-    function handleAddCircle() {
+    function handleAddCircle(e) {
+        e.stopPropagation();
         const [x, y, width, height] = viewBox.split(" ");
-        // console.log(x, y, width, height);
         const newCircle = {
             id: uuid(),
             cx: Number(width / 2) + Number(x),
@@ -27,12 +27,6 @@ function SvgCanvas() {
         };
         setCircles([...circles, newCircle]);
     }    
-
-    // function handleSvgCanvasClick() {
-    //     console.log("svgClick")
-    //     svgRef.current.removeEventListener("pointermove", handleSvgCanvasDrag, {passive: true});
-    //     svgRef.current.removeEventListener("pointerdown", resetSvgCanvas, {passive: true});
-    // }
 
     function handleSvgCanvasMouseDown(e){
         console.log("svgDown", svgPanMode)
@@ -44,13 +38,22 @@ function SvgCanvas() {
         }
     }
 
+    useEffect(() => {
+        if (svgIsDragging && svgPanMode.grab === "grab") {
+            svgRef.current.addEventListener("pointermove", handleSvgCanvasDrag);
+        }
+        return () => {
+            svgRef.current.removeEventListener("pointermove", handleSvgCanvasDrag)
+        }
+    }, [viewBox])
+
     function handleSvgCanvasDrag(e){
-        console.log("svgMoveAddNotWork")
-        if (svgIsDragging && svgPanMode.grab === "grab"){
+        console.log("svgMoveAddNotWork", svgIsDragging)
+        if (svgPanMode.grab === "grab"){
             console.log("moving")
             // 1. 取得一開始的 viewBox 值，原本是字串，拆成陣列，方便之後運算
             let [x, y, width, height] = viewBox.split(" ");
-
+            console.log(viewBox)
             //  2. 取得滑鼠當前 viewport 中 client 座標值
             let startClient = {
                 x: e.clientX,
@@ -93,25 +96,26 @@ function SvgCanvas() {
     }
     
     function handleSvgCanvasMouseUp(){
-        console.log("svgUp")
+        // console.log("svgUp")
         svgRef.current.removeEventListener("pointermove", handleSvgCanvasDrag, {passive: true});
         setSvgIsDragging(false);
     }
 
-    function handleCircleClick(e){
-        e.stopPropagation();
-        console.log("click")
-        svgRef.current.removeEventListener("pointermove", handleCircleMouseMove, {passive:true});
-        if (isDragging && e.target.id === selectedCircle) {
-            console.log("hi")
-            svgRef.current.removeEventListener("pointerdown", handleCircleMouseDown, {passive:true});
-            svgRef.current.removeEventListener("pointerup", handleCircleMouseUp, {passive: true});    
-        }
-    }
+    // function handleCircleClick(e){
+    //     e.stopPropagation();
+    //     // console.log("click")
+    //     svgRef.current.removeEventListener("pointermove", handleCircleMouseMove, {passive:true});
+    //     if (isDragging && e.target.id === selectedCircle) {
+    //         // console.log("hi")
+    //         svgRef.current.removeEventListener("pointerdown", handleCircleMouseDown, {passive:true});
+    //         svgRef.current.removeEventListener("pointerup", handleCircleMouseUp, {passive: true});    
+    //     }
+    // }
 
     function handleCircleMouseDown(e) {
+        e.stopPropagation();
         const id = e.target.id;
-        console.log("down");
+        // console.log("down");
         setIsDragging(true);
         setSelectedCircle(e.target.id);
         const CTM = circleRef.current.getScreenCTM();
@@ -122,15 +126,13 @@ function SvgCanvas() {
         // 避免圓形閃現的問題
         if (id === selectedCircle) {
             svgRef.current.addEventListener("pointermove", handleCircleMouseMove);
+            svgRef.current.addEventListener("pointerup", handleCircleMouseUp, {once: true});
         }
-        e.target.addEventListener("click", handleCircleClick, {once: true});
-        e.stopPropagation();
     }
     
     function handleCircleMouseMove(e){
         e.stopPropagation();
-        console.log("circle move")
-        svgRef.current.addEventListener("pointerup", handleCircleMouseUp, {once: true});
+        // console.log("circle move")
         const selected = circles.find((c) => c.id === selectedCircle);
         if (!selected) return
         if (isDragging) {
@@ -170,15 +172,7 @@ function SvgCanvas() {
           event.preventDefault();
         }
       }, {passive: false});
-    
-    // useEffect(() => {
-    //     console.log("effect")
-        // svgRef.current.addEventListener("pointerdown",resetSvgCanvas);
-        // svgRef.current.addEventListener("pointerdown", handleSvgCanvasMouseDown);
-    //     svgRef.current.addEventListener("pointermove", handleSvgCanvasDrag);
-    //     svgRef.current.addEventListener("pointerup", handleSvgCanvasMouseUp);
-    // }, [])
-      
+         
     function resetSvgCanvas(e){
         setSelectedCircle(null);
         console.log("reset")
@@ -203,11 +197,11 @@ function SvgCanvas() {
         // }
     }
     
-    function drag(){
-        if (draggingType = SVG_DRAG_TYPE_CANVAS) {
-            console.log(draggingType)
-        }
-    }
+    // function drag(){
+    //     if (draggingType = SVG_DRAG_TYPE_CANVAS) {
+    //         console.log(draggingType)
+    //     }
+    // }
     // console.log(svgPanMode)
     return (
         <Main>
@@ -231,8 +225,8 @@ function SvgCanvas() {
                     handleSvgCanvasMouseDown();
                     resetSvgCanvas();
                 }}
-                onPointerMove={handleSvgCanvasDrag}
-                onPointerUp={handleSvgCanvasMouseUp}
+                // onPointerMove={handleSvgCanvasDrag}
+                // onPointerUp={handleSvgCanvasMouseUp}
                 // onClick={resetSvgCanvas}
                 // onPointerDown={resetSvgCanvas}
             >
@@ -261,7 +255,7 @@ function SvgCanvas() {
                             width={circle.r} 
                             height={circle.r}
                             >
-                            <div>123</div>
+                            <ItemsText>1231231231231231231321321321</ItemsText>
                         </foreignObject>
                     </CircleSvgWrapper>
                 ))}
@@ -335,4 +329,12 @@ const CircleSvgWrapper = styled.g`
 
 const CircleSvg = styled.circle`
     cursor: move;
+`
+
+const ForeignObject = styled.foreignObject`
+    // 使用props 來改變長寬高，來達成彈性打字
+`
+
+const ItemsText = styled.div`
+
 `

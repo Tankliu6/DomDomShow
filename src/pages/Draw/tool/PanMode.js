@@ -20,7 +20,7 @@ function PanMode(props) {
     function handleSvgPanModeSwitch(){
         if (svgPanMode.grab === "grab"){
             console.log("svgnodragging")
-            // setSvgIsDragging(false);
+            setSvgIsDragging(false);
             setTheme({
                 background: "#ffffff",
                 fill: "#4a5475"
@@ -31,7 +31,7 @@ function PanMode(props) {
             })
         } else {
             console.log("svgisdragging")
-            // setSvgIsDragging(true);
+            setSvgIsDragging(true);
             setTheme({
                 background: "#4a5475",
                 fill: "#ffffff"

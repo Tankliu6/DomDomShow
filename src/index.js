@@ -10,11 +10,11 @@ const rootNode = document.querySelector(".root");
 const root = createRoot(rootNode);
 
 root.render(
-    <React.StrictMode>
+
     <BrowserRouter>
         <ResetStyle />
         <GlobalStyle />
         <App />
     </BrowserRouter>
-    </React.StrictMode>
+
 );
