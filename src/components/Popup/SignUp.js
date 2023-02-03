@@ -8,6 +8,7 @@ import {
     Notice,
     CloseButton,
     Hint,
+    Playground
 } from "./style/sharedStyle";
 import Close from "../../img/close-btn.png";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -70,6 +71,10 @@ const SignUp = (props) => {
         }
     }
 
+    function handleNavigateToPlayground(){
+        navigate("/Draw/playground");
+    }
+
     console.log("fire");
 
     return (
@@ -92,6 +97,11 @@ const SignUp = (props) => {
                 已經有帳號了?
                 <Hint>登入</Hint>
             </Notice>
+            <Playground onClick = {handleNavigateToPlayground}>點我試用
+                <Hint>
+                    來吧
+                </Hint>
+            </Playground>
         </Wrapper>
     );
 };

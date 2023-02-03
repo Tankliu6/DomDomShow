@@ -9,6 +9,7 @@ export const Wrapper = styled.div`
     right: 0;
     left: 0;
     margin: auto;
+    z-index: 999;
     display: flex;
     flex-direction: column;
     background-color: #ffffff;
@@ -69,3 +70,7 @@ export const CloseButton = styled.img`
     width: 20px;
     cursor: pointer;
 `;
+
+export const Playground = styled(Notice)`
+    margin-top: 20px;
+`

@@ -2,9 +2,9 @@ import Member from "./pages/Member";
 import Welcome from "./pages/Welcome";
 import Header from "./components/Header";
 import Drawing from "./pages/Draw";
-import TestSvg from "./pages/Draw/index00";
+import SvgCanvas from "./pages/Draw/index00";
 import React, { useState, useEffect } from "react";
-import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
+import { Routes, Route, NavLink, useNavigate, useLocation } from "react-router-dom";
 import UserContext from "./components/userContext";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "./firebase";
@@ -14,6 +14,7 @@ const App = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         onAuthStateChanged(auth, (authUser) => {
@@ -26,8 +27,12 @@ const App = () => {
                 // Retrieve user data from database
             } else {
                 setIsLoggedIn(false);
-                console.log("Not signedIn");
-                navigate("/");
+                if (location.pathname.split("/")[2] === "playground") {
+                    return
+                } else {
+                    console.log("Not signedIn");
+                    navigate("/");    
+                }
             }
         });
     }, []);
@@ -42,9 +47,16 @@ const App = () => {
                     setIsLoading={setIsLoading}
                 />
                 <Routes>
-                    <Route path="/" element={<Welcome />} />;
+                    <Route path="/" element={
+                    <Welcome 
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                        isLoading={isLoading}
+                        setIsLoading={setIsLoading}                        
+                    />} />;
                     <Route path="/member/collection" element={<Member />} />;
-                    <Route path="/Draw/:docId/:drawId" element={<TestSvg />} />;
+                    <Route path="/Draw/playground" element={<SvgCanvas />} />;
+                    <Route path="/Draw/:docId/:drawId" element={<SvgCanvas />} />;
                 </Routes>
             </UserContext.Provider>
         </>

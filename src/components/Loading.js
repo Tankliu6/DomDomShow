@@ -19,7 +19,7 @@ const LoadingLayer = styled.div`
     background-position: center;
     background-size: cover;
     position: fixed;
-    z-index: 999;
+    z-index: 9999;
     background-color: #ffffff;
     height: 100vh;
     width: 100vw;

@@ -8,6 +8,7 @@ import {
     Notice,
     CloseButton,
     Hint,
+    Playground
 } from "./style/sharedStyle";
 import Close from "../../img/close-btn.png";
 import { db, auth } from "../../firebase";
@@ -26,7 +27,6 @@ const SignIn = (props) => {
         isLoading,
         setIsLoading,
     } = props;
-    // const [isLoading, setIsLoading] = useState(false);
     const email = useRef();
     const password = useRef();
 
@@ -72,6 +72,10 @@ const SignIn = (props) => {
         }
     }
 
+    function handleNavigateToPlayground(){
+        navigate("/Draw/playground");
+    }
+
     return (
         <Wrapper>
             <CloseButton
@@ -92,6 +96,9 @@ const SignIn = (props) => {
                 還沒有帳號嗎?
                 <Hint>註冊</Hint>
             </Notice>
+            <Playground onClick = {handleNavigateToPlayground}>點我試用 
+                <Hint>來吧</Hint>
+            </Playground>
         </Wrapper>
     );
 };

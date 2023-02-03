@@ -24,6 +24,7 @@
         "eslint": "^8.32.0",
         "eslint-config-prettier": "^8.6.0",
         "eslint-plugin-react": "^7.32.0",
+        "eslint-plugin-react-hooks": "^4.6.0",
         "firebase-tools": "^11.20.0",
         "html-webpack-plugin": "^5.5.0",
         "node-sass": "^8.0.0",
@@ -39,6 +40,7 @@
         "firebase": "^9.15.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-icons": "^4.7.1",
         "react-router-dom": "^6.6.2",
         "styled-components": "^5.3.6",
         "util": "^0.12.5"
