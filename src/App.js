@@ -1,8 +1,7 @@
 import Member from "./pages/Member";
 import Welcome from "./pages/Welcome";
 import Header from "./components/Header";
-import Drawing from "./pages/Draw";
-import SvgCanvas from "./pages/Draw/index00";
+import SvgCanvas from "./pages/Draw/index";
 import React, { useState, useEffect } from "react";
 import { Routes, Route, NavLink, useNavigate, useLocation } from "react-router-dom";
 import UserContext from "./components/userContext";

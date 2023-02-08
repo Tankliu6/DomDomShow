@@ -31,7 +31,6 @@ function PanMode(props) {
             })
         } else {
             console.log("svgisdragging")
-            setSvgIsDragging(true);
             setTheme({
                 background: "#4a5475",
                 fill: "#ffffff"

@@ -37,12 +37,10 @@ const SignIn = (props) => {
 
     function handleEmail(e) {
         email.current = e.target.value;
-        console.log(email.current);
     }
 
     function handlePassword(e) {
         password.current = e.target.value;
-        console.log(password.current);
     }
 
     function handleSingInWithEmailAndPassword() {
@@ -54,7 +52,6 @@ const SignIn = (props) => {
                     const user = userCredential.user;
                     setIsLoggedIn(true);
                     setShowSignIn(false);
-                    console.log(user);
                     navigate("/member/collection");
                 })
                 .catch((error) => {
@@ -62,8 +59,6 @@ const SignIn = (props) => {
                     const errorCode = error.code;
                     const errorMessage = error.message;
                     setIsLoggedIn(false);
-                    console.log(errorCode);
-                    console.log(errorMessage);
                     navigate("/");
                 })
                 .finally(() => {

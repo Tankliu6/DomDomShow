@@ -35,12 +35,10 @@ const SignUp = (props) => {
 
     function handleEmail(e) {
         email.current = e.target.value;
-        console.log(email.current);
     }
 
     function handlePassword(e) {
         password.current = e.target.value;
-        console.log(password.current);
     }
 
     function handleSingUpWithEmailAndPassword() {
@@ -54,15 +52,12 @@ const SignUp = (props) => {
                 .then((userCredential) => {
                     // signup ok
                     const user = userCredential.user;
-                    console.log(user);
                     navigate("/");
                 })
                 .catch((error) => {
                     // signup fail
                     const errorCode = error.code;
                     const errorMessage = error.message;
-                    console.log(errorCode);
-                    console.log(errorMessage);
                     navigate("/");
                 })
                 .finally(() => {
@@ -74,8 +69,6 @@ const SignUp = (props) => {
     function handleNavigateToPlayground(){
         navigate("/Draw/playground");
     }
-
-    console.log("fire");
 
     return (
         <Wrapper>
