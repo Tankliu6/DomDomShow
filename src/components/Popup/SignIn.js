@@ -26,7 +26,8 @@ const SignIn = (props) => {
         setMemberAuthIsLoading,
         showPopUp, 
         setShowPopUp,
-        popUpTitleRef
+        popUpTitleRef,
+        setShowLayer
     } = props;
     const email = useRef();
     const password = useRef();
@@ -48,6 +49,7 @@ const SignIn = (props) => {
     function handleSingInWithEmailAndPassword() {
         setSubmitCursor("not-allowed");
         setSubmitOpacity(0.6);
+        setShowLayer("block")
         if (memberAuthIsLoading === false) {
             setMemberAuthIsLoading(true);
             signInWithEmailAndPassword(auth, email.current, password.current)
@@ -72,6 +74,7 @@ const SignIn = (props) => {
                     setMemberAuthIsLoading(false);
                     setSubmitCursor("pointer");
                     setSubmitOpacity(1);
+                    setShowLayer("none")
                     setTimeout(() => {
                         setShowPopUp(false)
                     }, 2000)

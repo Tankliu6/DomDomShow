@@ -8,7 +8,11 @@ import { MEDIA_QUERY_MAX_900 } from "../../global/constant/media";
 import PopUp from "../../components/Popup/PopUp";
 
 function SingInUp(props){
-    const {isLoggedIn, setIsLoggedIn, isLoading, setIsLoading} = props;
+    const {
+        isLoggedIn, 
+        setIsLoggedIn, 
+        setShowLayer
+    } = props;
     const popUpTitleRef = useRef("歡迎歡迎~!")
     const [switchDialog, setSwitchDialog] = useState(true);
     const [memberAuthIsLoading, setMemberAuthIsLoading] = useState(false);
@@ -32,6 +36,7 @@ function SingInUp(props){
                         showPopUp={showPopUp}
                         setShowPopUp={setShowPopUp}
                         popUpTitleRef={popUpTitleRef}
+                        setShowLayer={setShowLayer}
                     />
                 )}
                 {!switchDialog && (
@@ -43,6 +48,7 @@ function SingInUp(props){
                         showPopUp={showPopUp}
                         setShowPopUp={setShowPopUp}
                         popUpTitleRef={popUpTitleRef}
+                        setShowLayer={setShowLayer}
                     />
                 )}
                 <ImgWrapper>

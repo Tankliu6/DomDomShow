@@ -9,10 +9,12 @@ import UserContext from "./components/userContext";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "./firebase";
 import Loading from "./components/Loading";
+import Layer from "./components/Layer";
 const App = () => {
     const [user, setUser] = useState(undefined);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showLayer, setShowLayer] = useState("none");
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -39,6 +41,7 @@ const App = () => {
     }, []);
     return (
         <>
+            <Layer showLayer={showLayer}/>
             <Loading isLoading={isLoading} setIsLoading={setIsLoading} />
             <UserContext.Provider value={user}>
                 <Header
@@ -61,6 +64,7 @@ const App = () => {
                         setIsLoggedIn={setIsLoggedIn}
                         isLoading={isLoading}
                         setIsLoading={setIsLoading}
+                        setShowLayer={setShowLayer}
                     />} />;
                     <Route path="/Draw/playground" element={<SvgCanvas />} />;
                     <Route path="/Draw/:docId/:drawId" element={<SvgCanvas />} />;
