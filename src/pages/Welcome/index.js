@@ -8,20 +8,21 @@ import SignIn from "../../components/Popup/SignIn";
 import SignUp from "../../components/Popup/SignUp";
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase";
-import media from "../../global/constant/media";
+import { useNavigate } from "react-router-dom";
+import { MEDIA_QUERY_MAX_900 } from "../../global/constant/media";
+
 
 const Welcome = (props) => {
     const { isLoggedIn, setIsLoggedIn, isLoading, setIsLoading } = props;
     const [showSignIn, setShowSignIn] = useState(false);
     const [showSignUp, setShowSignUp] = useState(false);
+    const navigate = useNavigate();
 
     function handleMemberAuth() {
-        if (showSignIn == true || showSignUp == true) {
-            setShowSignIn(false);
-            setShowSignUp(false);
-        } else {
-            setShowSignIn(!showSignIn);
-            setShowSignUp(!showSignUp);
+        if (isLoggedIn) {
+            navigate("/");
+        } else if (!isLoggedIn) {
+            navigate("/login");
         }
     }
 
@@ -41,7 +42,7 @@ const Welcome = (props) => {
 
 
     return (
-        <Background media={media}>
+        <Background>
             <Content>
                 <Title>
                     自由畫板，隨手創造
@@ -71,28 +72,6 @@ const Welcome = (props) => {
                     <ImgRight src = {imgRight} />
                 </ImgGroup>    
             </Content>
-                {showSignIn && (
-                    <SignIn
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
-                        showSignIn={showSignIn}
-                        setShowSignIn={setShowSignIn}
-                        isLoggedIn={isLoggedIn}
-                        setIsLoggedIn={setIsLoggedIn}
-                        isLoading={isLoading}
-                        setIsLoading={setIsLoading}
-                    />
-                )}
-                {showSignUp && (
-                    <SignUp
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
-                        showSignIn={showSignIn}
-                        setShowSignIn={setShowSignIn}
-                        isLoading={isLoading}
-                        setIsLoading={setIsLoading}
-                    />
-                )}
         </Background>
     )
 };
@@ -117,7 +96,7 @@ const Content = styled.div`
     align-items: center;
     border-radius: 15px;
     margin-bottom: 100px;
-    ${media.MEDIA_QUERY_MAX_900} {
+    ${MEDIA_QUERY_MAX_900} {
         flex-direction: column-reverse;
     }
 `
@@ -129,17 +108,6 @@ const Title = styled.div`
     padding: 20px;
     font-size: 2rem;
     font-weight: 600;
-    /* @keyframes identifier {
-        0% {box-shadow: -5px 0px 10px -1px #d0ce7d;}
-        25% {box-shadow: 0px -5px 10px -1px #87c794;}
-        50% {box-shadow: 5px 0px 10px -1px #a594d9;}
-        75% {box-shadow: 0px 5px 10px -1px #94d5db;}
-        100% {box-shadow: -5px 0px 10px -1px #daa396;}
-    }
-    animation: identifier;
-    animation-duration: 6s;
-    animation-iteration-count: infinite;
-    animation-timing-function: ease-in-out; */
 `
 
 const Text = styled.div`
@@ -172,6 +140,10 @@ const ImgGroup = styled.div`
     position: relative;
     width: 500px;
     height: 500px;
+    ${MEDIA_QUERY_MAX_900} {
+        width: 360px;
+        height: 360px;
+    }
 `
 
 const ImgMain = styled.img`

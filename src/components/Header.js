@@ -18,18 +18,15 @@ import { RxCross1 } from "react-icons/rx";
 
 const Header = (props) => {
     const { isLoggedIn, setIsLoggedIn, isLoading, setIsLoading } = props;
-    const [showSignIn, setShowSignIn] = useState(false);
-    const [showSignUp, setShowSignUp] = useState(false);
     const [dropDawnListDisplay, setDropDawnListDisplay] = useState("none");
     const [dropDawnListShowing, setDropDawnListShowing] = useState(false);
+    const navigate = useNavigate();
 
     function handleMemberAuth() {
-        if (showSignIn == true || showSignUp == true) {
-            setShowSignIn(false);
-            setShowSignUp(false);
-        } else {
-            setShowSignIn(!showSignIn);
-            setShowSignUp(!showSignUp);
+        if (isLoggedIn) {
+            navigate("/");
+        } else if (!isLoggedIn) {
+            navigate("/login");
         }
     }
 
@@ -70,9 +67,6 @@ const Header = (props) => {
                     <PlaygroundWrapper />
                     <MyDrawWrapper
                         isLoggedIn={isLoggedIn}
-                        setIsLoggedIn={setIsLoggedIn}
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
                     ></MyDrawWrapper>
                     {!isLoggedIn && (
                         <Auth onClick={handleMemberAuth}>
@@ -103,36 +97,11 @@ const Header = (props) => {
                         <RxCross1 size={40} style={{ fill: "#000000" }}/>
                     </Hamburger>
                 }
-                {showSignIn && (
-                    <SignIn
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
-                        showSignIn={showSignIn}
-                        setShowSignIn={setShowSignIn}
-                        isLoggedIn={isLoggedIn}
-                        setIsLoggedIn={setIsLoggedIn}
-                        isLoading={isLoading}
-                        setIsLoading={setIsLoading}
-                    />
-                )}
-                {showSignUp && (
-                    <SignUp
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
-                        showSignIn={showSignIn}
-                        setShowSignIn={setShowSignIn}
-                        isLoading={isLoading}
-                        setIsLoading={setIsLoading}
-                    />
-                )}
             </Wrapper>
             <DropDawnList display={dropDawnListDisplay}>
                 <PlaygroundWrapper />
                 <MyDrawWrapper
                     isLoggedIn={isLoggedIn}
-                    setIsLoggedIn={setIsLoggedIn}
-                    showSignUp={showSignUp}
-                    setShowSignUp={setShowSignUp}
                 >
                 </MyDrawWrapper>
                 {!isLoggedIn && (
@@ -157,13 +126,13 @@ const Header = (props) => {
 };
 
 const MyDrawWrapper = (props) => {
-    const { isLoggedIn, setIsLoggedIn, showSignUp, setShowSignUp } = props;
+    const { isLoggedIn } = props;
     const navigate = useNavigate();
     function handleRedirectToMemberPage() {
         if (isLoggedIn) {
             navigate("/member/collection");
         } else {
-            setShowSignUp(true);
+            navigate("/login");
         }
     }
     return (
@@ -314,7 +283,4 @@ const DropDawnList = styled.div`
             margin-right: 0px;
         }
     }
-`
-
-const DropDawnListCloseButton = styled.img`
 `

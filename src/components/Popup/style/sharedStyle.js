@@ -3,12 +3,12 @@ import Close from "../../../img/close-btn.png";
 
 // style-components
 export const Wrapper = styled.div`
-    position: fixed;
+    /* position: fixed;
     top: 0;
     bottom: 0;
     right: 0;
     left: 0;
-    margin: auto;
+    margin: auto; */
     z-index: 999;
     display: flex;
     flex-direction: column;
@@ -40,12 +40,14 @@ export const Email = styled.input`
 export const Password = styled(Email)``;
 
 export const Submit = styled.button`
+    cursor: ${props => props.cursor || "pointer"};
     background-color: #000000;
     font-size: 16px;
     color: #ffffff;
     padding: 10px;
     width: 100%;
     border-radius: 5px;
+    opacity: ${props => props.opacity || 1};
 `;
 
 export const Notice = styled.div`

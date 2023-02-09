@@ -2,6 +2,7 @@ import Member from "./pages/Member";
 import Welcome from "./pages/Welcome";
 import Header from "./components/Header";
 import SvgCanvas from "./pages/Draw/index";
+import SingInUp from "./pages/SignInUp";
 import React, { useState, useEffect } from "react";
 import { Routes, Route, NavLink, useNavigate, useLocation } from "react-router-dom";
 import UserContext from "./components/userContext";
@@ -26,7 +27,8 @@ const App = () => {
                 // Retrieve user data from database
             } else {
                 setIsLoggedIn(false);
-                if (location.pathname.split("/")[2] === "playground") {
+                if (location.pathname.split("/")[2] === "playground" || location.pathname.split("/")[1] === "login") {
+                    console.log("logout but stay")
                     return
                 } else {
                     console.log("Not signedIn");
@@ -54,6 +56,12 @@ const App = () => {
                         setIsLoading={setIsLoading}                        
                     />} />;
                     <Route path="/member/collection" element={<Member />} />;
+                    <Route path="/login" element={<SingInUp 
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                        isLoading={isLoading}
+                        setIsLoading={setIsLoading}
+                    />} />;
                     <Route path="/Draw/playground" element={<SvgCanvas />} />;
                     <Route path="/Draw/:docId/:drawId" element={<SvgCanvas />} />;
                 </Routes>

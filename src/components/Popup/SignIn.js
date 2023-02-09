@@ -20,19 +20,21 @@ const SignIn = (props) => {
     const {
         isLoggedIn,
         setIsLoggedIn,
-        showSignUp,
-        setShowSignUp,
-        showSignIn,
-        setShowSignIn,
-        isLoading,
-        setIsLoading,
+        switchDialog,
+        setSwitchDialog,
+        memberAuthIsLoading,
+        setMemberAuthIsLoading,
+        showPopUp, 
+        setShowPopUp,
+        popUpTitleRef
     } = props;
     const email = useRef();
     const password = useRef();
+    const [submitOpacity, setSubmitOpacity] = useState();
+    const [submitCursor, setSubmitCursor] = useState();
 
-    function handleSwitchPopup() {
-        setShowSignIn(false);
-        setShowSignUp(true);
+    function handleSwitchDialog() {
+        setSwitchDialog(false);
     }
 
     function handleEmail(e) {
@@ -44,25 +46,35 @@ const SignIn = (props) => {
     }
 
     function handleSingInWithEmailAndPassword() {
-        if (isLoading === false) {
-            setIsLoading(true);
+        setSubmitCursor("not-allowed");
+        setSubmitOpacity(0.6);
+        if (memberAuthIsLoading === false) {
+            setMemberAuthIsLoading(true);
             signInWithEmailAndPassword(auth, email.current, password.current)
                 .then((userCredential) => {
                     // login ok
                     const user = userCredential.user;
+                    setMemberAuthIsLoading(false);
                     setIsLoggedIn(true);
-                    setShowSignIn(false);
                     navigate("/member/collection");
                 })
                 .catch((error) => {
                     // login fail
                     const errorCode = error.code;
                     const errorMessage = error.message;
+                    console.log(errorCode, errorMessage)
+                    setMemberAuthIsLoading(false);
                     setIsLoggedIn(false);
-                    navigate("/");
+                    setShowPopUp(true)
+                    popUpTitleRef.current = "請確認帳號密碼";
                 })
                 .finally(() => {
-                    setIsLoading(false);
+                    setMemberAuthIsLoading(false);
+                    setSubmitCursor("pointer");
+                    setSubmitOpacity(1);
+                    setTimeout(() => {
+                        setShowPopUp(false)
+                    }, 2000)
                 });
         }
     }
@@ -73,21 +85,20 @@ const SignIn = (props) => {
 
     return (
         <Wrapper>
-            <CloseButton
-                src={Close}
-                onClick={() => {
-                    setShowSignIn(false);
-                    setShowSignUp(false);
-                }}
-            />
             <Title>DomDomShow</Title>
             <Email placeholder="Email" onChange={handleEmail}></Email>
             <Password
                 placeholder="Password"
                 onChange={handlePassword}
             ></Password>
-            <Submit onClick={handleSingInWithEmailAndPassword}>登入</Submit>
-            <Notice onClick={handleSwitchPopup}>
+            <Submit 
+                cursor={submitCursor}
+                opacity={submitOpacity} 
+                onClick={handleSingInWithEmailAndPassword}
+            >
+                登入
+            </Submit>
+            <Notice onClick={handleSwitchDialog}>
                 還沒有帳號嗎?
                 <Hint>註冊</Hint>
             </Notice>
