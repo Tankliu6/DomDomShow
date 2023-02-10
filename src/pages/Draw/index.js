@@ -12,6 +12,7 @@ import {
 
 function SvgCanvas() {
     const svgRef = useRef(null);
+    const svgIsDraggingRef = useRef(false);
     const circleRef = useRef(null);
     const deleteRef = useRef();
     const leftRightRef = useRef(null);
@@ -50,58 +51,87 @@ function SvgCanvas() {
 
     function handleSvgCanvasMouseDown(e){
         // console.log("svgDown", svgPanMode)
-        setSvgIsDragging(true);
+        // svgPanMode.grab === "grab" ? setSvgIsDragging(true) : null;
+        svgPanMode.grab === "grab" ? svgIsDraggingRef.current = true : null;
+
     }
+
+    // function handleSvgCanvasMove(e){
+    //     e.preventDefault();
+    //     if (svgIsDragging){
+    //         // 1. 取得一開始的 viewBox 值，原本是字串，拆成陣列，方便之後運算
+    //         let [x, y, width, height] = viewBox.split(" ").map(Number);
+    //         // console.log(viewBox)
+    //         //  2. 取得滑鼠當前 viewport 中 client 座標值
+    //         let startClient = {
+    //             x: e.clientX,
+    //             y: e.clientY,
+    //         }
+
+    //         //  3. 計算對應回去的 SVG 座標值
+    //         let newSVGPoint = svgRef.current.createSVGPoint();
+    //         let CTM = svgRef.current.getScreenCTM();
+    //         newSVGPoint.x = startClient.x;
+    //         newSVGPoint.y = startClient.y;
+    //         let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
+
+    //         //  4. 計算拖曳後滑鼠所在的 viewport client 座標值
+    //         let moveToClient = {
+    //             x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
+    //             y: e.clientY + e.movementY
+    //         }
+
+    //         // 5. 計算對應回去的 SVG 座標值
+    //         newSVGPoint = svgRef.current.createSVGPoint()
+    //         // CTM = svgRef.current.getScreenCTM()
+    //         newSVGPoint.x = moveToClient.x
+    //         newSVGPoint.y = moveToClient.y
+    //         let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
+
+    //         //  6. 計算位移量
+    //         let delta = {
+    //             dx: startSVGPoint.x - moveToSVGPoint.x,
+    //             dy: startSVGPoint.y - moveToSVGPoint.y
+    //         }
+
+    //         //  7. 設定新的 viewBox 值
+    //         setViewBox(
+    //             `${x + delta.dx} ${y + delta.dy} ${width} ${height}`
+    //         )
+    //     }
+
+    // }
 
     function handleSvgCanvasMove(e){
         e.preventDefault();
-        if (svgIsDragging && svgPanMode.grab === "grab"){
-            // 1. 取得一開始的 viewBox 值，原本是字串，拆成陣列，方便之後運算
-            let [x, y, width, height] = viewBox.split(" ");
-            // console.log(viewBox)
-            //  2. 取得滑鼠當前 viewport 中 client 座標值
-            let startClient = {
-                x: e.clientX,
-                y: e.clientY,
-            }
-
-            //  3. 計算對應回去的 SVG 座標值
-            let newSVGPoint = svgRef.current.createSVGPoint();
-            let CTM = svgRef.current.getScreenCTM();
-            newSVGPoint.x = startClient.x;
-            newSVGPoint.y = startClient.y;
-            let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-            //  4. 計算拖曳後滑鼠所在的 viewport client 座標值
-            let moveToClient = {
-                x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
-                y: e.clientY + e.movementY
-            }
-
-            // 5. 計算對應回去的 SVG 座標值
-            newSVGPoint = svgRef.current.createSVGPoint()
-            CTM = svgRef.current.getScreenCTM()
-            newSVGPoint.x = moveToClient.x
-            newSVGPoint.y = moveToClient.y
-            let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-            //  6. 計算位移量
-            let delta = {
-                dx: startSVGPoint.x - moveToSVGPoint.x,
-                dy: startSVGPoint.y - moveToSVGPoint.y
-            }
-
-            //  7. 設定新的 viewBox 值
-            setViewBox(
-                `${Number(x) + Number(delta.dx)} ${Number(y) + Number(delta.dy)} ${width} ${height}`
-            )
-        }
-
-    }
+        if (svgIsDraggingRef.current){
+            let [x, y, width, height] = viewBox.split(" ").map(Number);
     
-    function handleSvgCanvasMouseUp(){
-        setSvgIsDragging(false);
+            let CTM = svgRef.current.getScreenCTM().inverse();
+            let startClient = { x: e.clientX, y: e.clientY };
+            let startSVGPoint = svgRef.current.createSVGPoint();
+            startSVGPoint.x = startClient.x;
+            startSVGPoint.y = startClient.y;
+            startSVGPoint = startSVGPoint.matrixTransform(CTM);
+    
+            let moveToClient = { x: e.clientX + e.movementX, y: e.clientY + e.movementY };
+            let moveToSVGPoint = svgRef.current.createSVGPoint();
+            moveToSVGPoint.x = moveToClient.x;
+            moveToSVGPoint.y = moveToClient.y;
+            moveToSVGPoint = moveToSVGPoint.matrixTransform(CTM);
+    
+            let delta = { dx: startSVGPoint.x - moveToSVGPoint.x, dy: startSVGPoint.y - moveToSVGPoint.y };
+    
+            setViewBox(`${x + delta.dx} ${y + delta.dy} ${width} ${height}`);
+        }
     }
+     
+ 
+    function handleSvgCanvasMouseUp(){
+        // setSvgIsDragging(false);
+        svgIsDraggingRef.current = false;
+    }
+
 
     function handleCircleMouseDown(e) {
         e.stopPropagation();
@@ -233,17 +263,17 @@ function SvgCanvas() {
       }, {passive: false});
     
     // // 刪除節點與由此節點出發的線段
-    // function handleRemoveNode(e){
-    //     if (e.code === "Delete" && selectedCircle.id !== "default") {
-    //         console.log(selectedCircle, selectedLines, selectedLines2);
-    //         circles.splice(selectedCircle.id, 1)
-    //         setSelectedCircle({id: "default"});
-    //         setCircles([...circles]);
+    function handleRemoveNode(e){
+        if (e.code === "Delete" && selectedCircle.id !== "default") {
+            console.log(selectedCircle, selectedLines, selectedLines2);
+            circles.splice(selectedCircle.id, 1)
+            setSelectedCircle({id: "default"});
+            setCircles([...circles]);
 
-    //         const linesNotBindToSelectedNode = lines.filter((line) => line.id != selectedCircle.id);
-    //         setLines([...linesNotBindToSelectedNode]);
-    //     }
-    // }
+            const linesNotBindToSelectedNode = lines.filter((line) => line.id != selectedCircle.id);
+            setLines([...linesNotBindToSelectedNode]);
+        }
+    }
 
     // 點擊SVG畫布時將圓點上的事件解註冊 
     function resetSvgCanvas(e){
