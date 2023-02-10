@@ -172,6 +172,8 @@ export default Header;
 
 // style-component
 const Nav = styled.section`
+    position: relative;
+    z-index: 999;
     display: flex;
     justify-content: center;
     background-color: var(--color-background-yellow);

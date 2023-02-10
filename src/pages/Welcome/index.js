@@ -85,7 +85,7 @@ const Background = styled.section`
     align-items: center;
     background-image: url(${background});
     height: calc(100vh - 104px);
-    min-height: 660px;
+    /* min-height: 660px; */
     background-size: cover;
     background-position: center;
 `;

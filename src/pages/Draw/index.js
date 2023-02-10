@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import styled from "styled-components";
 import media from "../../global/constant/media";
 import PanMode from "./tool/PanMode";
+import Zoom from "./tool/Zoom";
 import { 
     TbArrowBigUpLine, 
     TbArrowBigRightLine,
@@ -244,7 +245,7 @@ function SvgCanvas() {
     function handleWheel(event) {
         if (event.ctrlKey || event.metaKey) {
             const [x, y, width, height] = viewBox.split(" ").map(num => parseFloat(num));
-            const delta = event.deltaY > 0 ? 1 / 1.1 : 1.1;
+            const delta = event.deltaY > 0 ? 1.1 : 1/1.1;
             const mouseX = event.clientX;
             const mouseY = event.clientY;
             const newWidth = width * delta;
@@ -482,8 +483,13 @@ function SvgCanvas() {
             }
             handleLineCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
-            selectedCircle.r += delta.dx;
-            setCircles([...circles]);
+            if (selectedCircle.r < 20) {
+                selectedCircle.r = 21;
+              } else {
+                selectedCircle.r += delta.dx;
+              }
+              setCircles(prevCircles => [...prevCircles.map(c => (c === selectedCircle ? selectedCircle : c))]);
+                 
             // 設定該節點的線段同步移動
             // 上
             lineAtNorthRef.current.forEach(line => {
@@ -493,7 +499,7 @@ function SvgCanvas() {
                 line.x2 = line.x2;
                 line.y2 = line.y2;
                 // 動態曲線點使其為直線
-                // handleUpdateLine(line, delta);
+                handleUpdateLine(line, delta);
             })
             lineAtNorthRef2.current.forEach(line => {
                 console.log("N1-2")
@@ -567,8 +573,12 @@ function SvgCanvas() {
             }
             handleLineCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
-            selectedCircle.r -= delta.dx;
-            setCircles([...circles]);
+            if (selectedCircle.r < 20) {
+                selectedCircle.r = 21;
+              } else {
+                selectedCircle.r -= delta.dx;
+              }
+              setCircles(prevCircles => [...prevCircles.map(c => (c === selectedCircle ? selectedCircle : c))]);
 
             // 上
             lineAtNorthRef.current.forEach(line => {
@@ -678,6 +688,7 @@ function SvgCanvas() {
                     handleSvgCanvasMove(e);
                     handleCircleMouseMove(e);
                     handleTransformMove(e);
+                    handleDetectSvgBonudary(e);
                 }}
                 onPointerUp={(e) =>{
                     handleSvgCanvasMouseUp(e);
@@ -720,7 +731,7 @@ function SvgCanvas() {
                             height={circle.r}
                             >
                             <ItemsText>
-                                1231231231231231231321321321
+                                目前無法打字
                             </ItemsText>
                         </ForeignObject>
                         <foreignObject
@@ -747,7 +758,6 @@ function SvgCanvas() {
                             y={circle.cy - 25}
                             width={50} 
                             height={50}
-                            tabIndex={1}
                         >
                             <CreateNode 
                                 visibility={
@@ -907,6 +917,7 @@ function SvgCanvas() {
                 setViewBox={setViewBox}
             >
             </PanMode>
+            <Zoom viewBox={viewBox} setViewBox={setViewBox}/>
         </Main>
     )
 }

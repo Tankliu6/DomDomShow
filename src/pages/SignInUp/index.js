@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import SignIn from "../../components/Popup/SignIn";
 import SignUp from "../../components/Popup/SignUp";
-import backgroundImg from "../../img/signinup-background.png";
+import backgroundImg from "../../img/signinup-background-01.png";
 import handshake from "../../img/handshake.png";
 import { MEDIA_QUERY_MAX_900 } from "../../global/constant/media";
 import PopUp from "../../components/Popup/PopUp";
@@ -17,10 +17,6 @@ function SingInUp(props){
     const [switchDialog, setSwitchDialog] = useState(true);
     const [memberAuthIsLoading, setMemberAuthIsLoading] = useState(false);
     const [showPopUp, setShowPopUp] = useState(false);
-
-    useEffect(() => {
-
-    })
 
     return (
         <Wrapper>
@@ -59,7 +55,6 @@ function SingInUp(props){
                     />
                 </ImgWrapper>
             </Content>
-            <BackgroundImg src={backgroundImg} />
         </Wrapper>
     )
 }
@@ -68,10 +63,13 @@ export default SingInUp;
 
 // styled-component
 const Wrapper = styled.div`
-    background-color: #fef7ae;
     display: flex;
     justify-content: center;
     align-items: center;
+    background-image: url(${backgroundImg});
+    background-position: center;
+    background-size: cover;
+    width: 100%;
     min-height: calc(100vh - 104px);
 `
 
@@ -83,12 +81,6 @@ const Content = styled.div`
     ${MEDIA_QUERY_MAX_900}{
         flex-direction: column;
     }
-`
-
-const BackgroundImg = styled.img`
-    position: absolute;
-    max-width: 100%;
-    max-height: 100%;
 `
 
 const ImgWrapper = styled.div`
