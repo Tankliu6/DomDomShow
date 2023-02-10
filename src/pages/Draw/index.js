@@ -13,11 +13,16 @@ import {
 function SvgCanvas() {
     const svgRef = useRef(null);
     const circleRef = useRef(null);
+    const deleteRef = useRef();
     const leftRightRef = useRef(null);
     const lineAtNorthRef = useRef([]);
+    const lineAtNorthRef2 = useRef([]);
     const lineAtEastRef = useRef([]);
+    const lineAtEastRef2 = useRef([]);
     const lineAtSouthRef = useRef([]);
+    const lineAtSouthRef2 = useRef([]);
     const lineAtWestRef = useRef([]);
+    const lineAtWestRef2 = useRef([]);
     const [foreignObjectPointerEventMode, setForeignObjectPointerEventMode] = useState(false);
     const [circles, setCircles] = useState([]);
     const [selectedCircle, setSelectedCircle] = useState({id: "default"});
@@ -30,8 +35,6 @@ function SvgCanvas() {
     const [selectedLines, setSelectedLines] = useState([]);
     const [selectedLines2, setSelectedLines2] = useState([]);
     const [transformIsDragging, setTransformIsDragging] = useState(false);
-
-    // console.log(lines)
 
     function handleAddCircle(e) {
         e.stopPropagation();
@@ -105,6 +108,7 @@ function SvgCanvas() {
 
         const id = e.target.id; // 立即於此點擊事件中找到被點擊的 id
         setIsDragging(true);
+        console.log(id, selectedCircle)
 
         isDragging ? setCircleMoving(true) : null;
 
@@ -123,6 +127,7 @@ function SvgCanvas() {
         } else {
             setCircleMoving(false);
             setSelectedLines([]);
+            setSelectedLines2([]);
         }
     }
 
@@ -195,30 +200,30 @@ function SvgCanvas() {
             setLines([...lines])
         }
     }
-
-            
+        
     function handleCircleMouseUp(e) {
         e.stopPropagation();
         console.log("leave");
         setIsDragging(false);
         setCircleMoving(false);
         setSelectedCircle({id: "default"});
-        // svgRef.current.removeEventListener("pointerdown", handleCircleMouseDown, {passive:true});
-        // svgRef.current.removeEventListener("pointermove", handleCircleMouseMove, {passive:true});
         svgRef.current.removeEventListener("pointerup", handleCircleMouseUp, {passive: true});    
     }
 
     // zoom-in and zoom-out
     function handleWheel(event) {
-        if(event.ctrlKey || event.metaKey){
-            let width, height, x, y;
-            [x, y, width, height] = viewBox.split(" ").map(Number);
-            const delta = event.deltaY < 0 ? 1.1 : (1/1.1);
-            width *= delta;
-            height *= delta;
-            setViewBox(`${x} ${y} ${Math.round(width)} ${Math.round(height)}`);
+        if (event.ctrlKey || event.metaKey) {
+            const [x, y, width, height] = viewBox.split(" ").map(num => parseFloat(num));
+            const delta = event.deltaY > 0 ? 1 / 1.1 : 1.1;
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const newWidth = width * delta;
+            const newHeight = height * delta;
+            const offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+            const offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+            setViewBox(`${x + offsetX} ${y + offsetY} ${newWidth.toFixed(2)} ${newHeight.toFixed(2)}`);
         }
-    }
+    }      
 
     // zoom-in and zoom-out 
     document.addEventListener('wheel', function(event) {
@@ -227,6 +232,19 @@ function SvgCanvas() {
         }
       }, {passive: false});
     
+    // // 刪除節點與由此節點出發的線段
+    // function handleRemoveNode(e){
+    //     if (e.code === "Delete" && selectedCircle.id !== "default") {
+    //         console.log(selectedCircle, selectedLines, selectedLines2);
+    //         circles.splice(selectedCircle.id, 1)
+    //         setSelectedCircle({id: "default"});
+    //         setCircles([...circles]);
+
+    //         const linesNotBindToSelectedNode = lines.filter((line) => line.id != selectedCircle.id);
+    //         setLines([...linesNotBindToSelectedNode]);
+    //     }
+    // }
+
     // 點擊SVG畫布時將圓點上的事件解註冊 
     function resetSvgCanvas(e){
         setSelectedCircle({id: "default"});
@@ -238,9 +256,9 @@ function SvgCanvas() {
     // 創建新的線段節點
     function handleAddNode(e){
         e.stopPropagation();
-        console.log(selectedCircle)
-        console.log("Add Node")
-        console.log(e)
+        // console.log(selectedCircle)
+        // console.log("Add Node")
+        // console.log(e)
         
         function handleAddEndPointCircle(props){
             const {id, x2, y2} = props;
@@ -351,205 +369,246 @@ function SvgCanvas() {
 
         // 上
         const lineAtNorth = lines.filter((line) => line.id === id && line.y1 < selectedCircle.cy);
-        console.log(lineAtNorth);
+        // console.log(lineAtNorth);
         lineAtNorthRef.current = [...lineAtNorth];
+
+        const lineAtNorth2 = lines.filter((line) => line.id2 === id && line.y2 < selectedCircle.cy);
+        lineAtNorthRef2.current = [...lineAtNorth2]
 
         // 右
         const lineAtEast = lines.filter((line) => line.id === id && line.x1 > selectedCircle.cx);
-        console.log(lineAtEast);
+        // console.log(lineAtEast);
         lineAtEastRef.current = [...lineAtEast];
+
+        const lineAtEast2 = lines.filter((line) => line.id2 === id && line.x2 > selectedCircle.cx);
+        lineAtEastRef2.current = [...lineAtEast2]
 
         // 下
         const lineAtSouth = lines.filter((line) => line.id === id && line.y1 > selectedCircle.cy);
-        console.log(lineAtSouth);
+        // console.log(lineAtSouth);
         lineAtSouthRef.current = [...lineAtSouth];
+
+        const lineAtSouth2 = lines.filter((line) => line.id2 === id && line.y2 > selectedCircle.cy);
+        lineAtSouthRef2.current = [...lineAtSouth2];
 
         // 左
         const lineAtWest = lines.filter((line) => line.id === id && line.x1 < selectedCircle.cx);
-        console.log(lineAtWest);
+        // console.log(lineAtWest);
         lineAtWestRef.current = [...lineAtWest];
+
+        const lineAtWest2 = lines.filter((line) => line.id2 === id && line.x2 < selectedCircle.cx);
+        lineAtWestRef2.current = [...lineAtWest2]
     }
 
+    function handleUpdateLine(line, delta){
+        line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
+        line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
+        line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
+        line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+    }
+
+    function handleLineCoordinateTransfer(props){
+        const { e, delta } = props
+        //  1. 取得滑鼠當前 viewport 中 client 座標值
+        let startClient = {
+            x: e.clientX,
+            y: e.clientY,
+        }
+
+        //  2. 計算對應回去的 SVG 座標值
+        let newSVGPoint = svgRef.current.createSVGPoint();
+        let CTM = svgRef.current.getScreenCTM();
+        newSVGPoint.x = startClient.x;
+        newSVGPoint.y = startClient.y;
+        let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
+
+        //  3. 計算拖曳後滑鼠所在的 viewport client 座標值
+        let moveToClient = {
+            x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
+            y: e.clientY + e.movementY
+        }
+
+        // 4. 計算對應回去的 SVG 座標值
+        newSVGPoint = svgRef.current.createSVGPoint()
+        CTM = svgRef.current.getScreenCTM()
+        newSVGPoint.x = moveToClient.x
+        newSVGPoint.y = moveToClient.y
+        let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
+
+        //  5. 計算位移量
+        delta.dx = startSVGPoint.x - moveToSVGPoint.x;
+        delta.dy = startSVGPoint.y - moveToSVGPoint.y;      
+    }
+    
     function handleTransformMove(e){
         e.stopPropagation();
         // 節點左半邊
         if (transformIsDragging && leftRightRef.current) {
-            console.log(lineAtNorthRef, lineAtEastRef, lineAtSouthRef, lineAtWestRef)
+            // console.log(lineAtNorthRef, lineAtEastRef, lineAtSouthRef, lineAtWestRef,lineAtNorthRef2, lineAtEastRef2, lineAtSouthRef2, lineAtWestRef2)
             // console.log(selectedLines, selectedLines2)
-            //  1. 取得滑鼠當前 viewport 中 client 座標值
-            let startClient = {
-                x: e.clientX,
-                y: e.clientY,
-            }
-
-            //  2. 計算對應回去的 SVG 座標值
-            let newSVGPoint = svgRef.current.createSVGPoint();
-            let CTM = svgRef.current.getScreenCTM();
-            newSVGPoint.x = startClient.x;
-            newSVGPoint.y = startClient.y;
-            let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-            //  3. 計算拖曳後滑鼠所在的 viewport client 座標值
-            let moveToClient = {
-                x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
-                y: e.clientY + e.movementY
-            }
-
-            // 4. 計算對應回去的 SVG 座標值
-            newSVGPoint = svgRef.current.createSVGPoint()
-            CTM = svgRef.current.getScreenCTM()
-            newSVGPoint.x = moveToClient.x
-            newSVGPoint.y = moveToClient.y
-            let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-            //  5. 計算位移量
             let delta = {
-                dx: startSVGPoint.x - moveToSVGPoint.x,
-                dy: startSVGPoint.y - moveToSVGPoint.y
+                dx: "",
+                dy: ""
             }
-
+            handleLineCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
             selectedCircle.r += delta.dx;
             setCircles([...circles]);
             // 設定該節點的線段同步移動
+            // 上
             lineAtNorthRef.current.forEach(line => {
                 console.log("N1")
-                line.x1 = line.x1; 
+                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
                 // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+                // handleUpdateLine(line, delta);
+            })
+            lineAtNorthRef2.current.forEach(line => {
+                console.log("N1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = line.x2;
+                line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
+                handleUpdateLine(line, delta);
             })    
+            // 右
             lineAtEastRef.current.forEach(line => {
                 console.log("E1")
-                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx; 
+                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;
                 line.y1 = line.y1;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;                     
+                handleUpdateLine(line, delta);                    
             })
+            lineAtEastRef2.current.forEach(line => {
+                console.log("E1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;
+                line.y2 = line.y2;
+                handleUpdateLine(line, delta);                    
+            })
+            // 下
             lineAtSouthRef.current.forEach(line => {
                 console.log("S1")
-                line.x1 = line.x1; 
+                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+                handleUpdateLine(line, delta);     
             })
+            lineAtSouthRef2.current.forEach(line => {
+                console.log("S1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = line.x2;
+                line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;
+                handleUpdateLine(line, delta);     
+            })
+            // 左
             lineAtWestRef.current.forEach(line => {
                 console.log("W1")
-                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx; 
+                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;
                 line.y1 = line.y1;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+                handleUpdateLine(line, delta);    
             })
+            lineAtWestRef2.current.forEach(line => {
+                console.log("W1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;
+                line.y2 = line.y2;
+                handleUpdateLine(line, delta);    
+            })
+
             setLines([...lines])
 
         // 節點右半邊
         } else if (transformIsDragging && !leftRightRef.current) {
             // console.log(lineAtNorthRef, lineAtEastRef, lineAtSouthRef, lineAtWestRef)
             // console.log(selectedLines,selectedLines2)
-            //  1. 取得滑鼠當前 viewport 中 client 座標值
-            let startClient = {
-                x: e.clientX,
-                y: e.clientY,
-            }
-
-            //  2. 計算對應回去的 SVG 座標值
-            let newSVGPoint = svgRef.current.createSVGPoint();
-            let CTM = svgRef.current.getScreenCTM();
-            newSVGPoint.x = startClient.x;
-            newSVGPoint.y = startClient.y;
-            let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-            //  3. 計算拖曳後滑鼠所在的 viewport client 座標值
-            let moveToClient = {
-                x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
-                y: e.clientY + e.movementY
-            }
-
-            // 4. 計算對應回去的 SVG 座標值
-            newSVGPoint = svgRef.current.createSVGPoint()
-            CTM = svgRef.current.getScreenCTM()
-            newSVGPoint.x = moveToClient.x
-            newSVGPoint.y = moveToClient.y
-            let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-            //  5. 計算位移量
             let delta = {
-                dx: startSVGPoint.x - moveToSVGPoint.x,
-                dy: startSVGPoint.y - moveToSVGPoint.y
+                dx: "",
+                dy: ""
             }
-
+            handleLineCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
             selectedCircle.r -= delta.dx;
             setCircles([...circles]);
-            // 設定該節點的線段同步移動
+
+            // 上
             lineAtNorthRef.current.forEach(line => {
                 console.log("N1")
-                line.x1 = line.x1; 
+                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
                 // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+                handleUpdateLine(line, delta);
+            })
+            lineAtNorthRef2.current.forEach(line => {
+                console.log("N1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = line.x2;
+                line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
+                handleUpdateLine(line, delta);
             })    
+            // 右
             lineAtEastRef.current.forEach(line => {
                 console.log("E1")
-                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx; 
+                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;
                 line.y1 = line.y1;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+                handleUpdateLine(line, delta);                    
             })
+            lineAtEastRef2.current.forEach(line => {
+                console.log("E1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;
+                line.y2 = line.y2;
+                handleUpdateLine(line, delta);                    
+            })
+            // 下
             lineAtSouthRef.current.forEach(line => {
                 console.log("S1")
-                line.x1 = line.x1; 
+                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+                handleUpdateLine(line, delta);     
             })
+            lineAtSouthRef2.current.forEach(line => {
+                console.log("S1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = line.x2;
+                line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;
+                handleUpdateLine(line, delta);     
+            })
+            // 左
             lineAtWestRef.current.forEach(line => {
                 console.log("W1")
-                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx; 
+                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;
                 line.y1 = line.y1;
                 line.x2 = line.x2;
                 line.y2 = line.y2;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
+                handleUpdateLine(line, delta);    
             })
+            lineAtWestRef2.current.forEach(line => {
+                console.log("W1-2")
+                line.x1 = line.x1;
+                line.y1 = line.y1;
+                line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;
+                line.y2 = line.y2;
+                handleUpdateLine(line, delta);    
+            })            
             setLines([...lines])  
         }
     }
@@ -572,6 +631,7 @@ function SvgCanvas() {
                 <button onClick={handleAddCircle}>Add Circle</button>
             </Aside>
             <Svg
+                tabIndex={-1}
                 id="svg"
                 className="svg"
                 ref={svgRef}
@@ -579,7 +639,7 @@ function SvgCanvas() {
                 xmlns="http://www.w3.org/2000/svg"
                 panMode={svgPanMode}
                 onWheel={handleWheel}
-                onKeyDown={e => console.log(e.code)}
+                onKeyDown={handleRemoveNode}
                 onPointerDown={(e) => {
                     handleSvgCanvasMouseDown();
                     resetSvgCanvas();
