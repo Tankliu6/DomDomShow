@@ -27,10 +27,11 @@ function SvgCanvas() {
     const lineAtWestRef2 = useRef([]);
     const [foreignObjectPointerEventMode, setForeignObjectPointerEventMode] = useState(false);
     const [circles, setCircles] = useState([]);
-    const [selectedCircle, setSelectedCircle] = useState({id: "default"});
+    const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0});
     const [isDragging, setIsDragging] = useState(false);
     const [circleMoving, setCircleMoving] = useState(false);
-    const [viewBox, setViewBox] = useState("0 0 960 540");
+    const [viewBoxOrigin, setViewBoxOrigin] = useState({ x: 0, y: 0 })
+    const [SVGSize, setSVGSize] = useState({ width: 960, height: 540 })
     const [svgIsDragging, setSvgIsDragging] = useState(false);
     const [svgPanMode, setSvgPanMode] = useState({grab: "default", grabbing: "default"});
     const [lines, setLines] = useState([]);
@@ -40,7 +41,8 @@ function SvgCanvas() {
 
     function handleAddCircle(e) {
         e.stopPropagation();
-        const [x, y, width, height] = viewBox.split(" ");
+        const { x, y } = viewBoxOrigin;
+        const { width, height } = SVGSize;
         const newCircle = {
             id: uuid(),
             cx: Number(width / 2) + Number(x),
@@ -51,85 +53,24 @@ function SvgCanvas() {
     }    
 
     function handleSvgCanvasMouseDown(e){
-        // console.log("svgDown", svgPanMode)
-        // svgPanMode.grab === "grab" ? setSvgIsDragging(true) : null;
         svgPanMode.grab === "grab" ? svgIsDraggingRef.current = true : null;
-
     }
-
-    // function handleSvgCanvasMove(e){
-    //     e.preventDefault();
-    //     if (svgIsDragging){
-    //         // 1. 取得一開始的 viewBox 值，原本是字串，拆成陣列，方便之後運算
-    //         let [x, y, width, height] = viewBox.split(" ").map(Number);
-    //         // console.log(viewBox)
-    //         //  2. 取得滑鼠當前 viewport 中 client 座標值
-    //         let startClient = {
-    //             x: e.clientX,
-    //             y: e.clientY,
-    //         }
-
-    //         //  3. 計算對應回去的 SVG 座標值
-    //         let newSVGPoint = svgRef.current.createSVGPoint();
-    //         let CTM = svgRef.current.getScreenCTM();
-    //         newSVGPoint.x = startClient.x;
-    //         newSVGPoint.y = startClient.y;
-    //         let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-    //         //  4. 計算拖曳後滑鼠所在的 viewport client 座標值
-    //         let moveToClient = {
-    //             x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
-    //             y: e.clientY + e.movementY
-    //         }
-
-    //         // 5. 計算對應回去的 SVG 座標值
-    //         newSVGPoint = svgRef.current.createSVGPoint()
-    //         // CTM = svgRef.current.getScreenCTM()
-    //         newSVGPoint.x = moveToClient.x
-    //         newSVGPoint.y = moveToClient.y
-    //         let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-    //         //  6. 計算位移量
-    //         let delta = {
-    //             dx: startSVGPoint.x - moveToSVGPoint.x,
-    //             dy: startSVGPoint.y - moveToSVGPoint.y
-    //         }
-
-    //         //  7. 設定新的 viewBox 值
-    //         setViewBox(
-    //             `${x + delta.dx} ${y + delta.dy} ${width} ${height}`
-    //         )
-    //     }
-
-    // }
-
-    function handleSvgCanvasMove(e){
+    
+    function handleSvgCanvasMove(e) {
         e.preventDefault();
-        if (svgIsDraggingRef.current){
-            let [x, y, width, height] = viewBox.split(" ").map(Number);
-    
-            let CTM = svgRef.current.getScreenCTM().inverse();
-            let startClient = { x: e.clientX, y: e.clientY };
-            let startSVGPoint = svgRef.current.createSVGPoint();
-            startSVGPoint.x = startClient.x;
-            startSVGPoint.y = startClient.y;
-            startSVGPoint = startSVGPoint.matrixTransform(CTM);
-    
-            let moveToClient = { x: e.clientX + e.movementX, y: e.clientY + e.movementY };
-            let moveToSVGPoint = svgRef.current.createSVGPoint();
-            moveToSVGPoint.x = moveToClient.x;
-            moveToSVGPoint.y = moveToClient.y;
-            moveToSVGPoint = moveToSVGPoint.matrixTransform(CTM);
-    
-            let delta = { dx: startSVGPoint.x - moveToSVGPoint.x, dy: startSVGPoint.y - moveToSVGPoint.y };
-    
-            setViewBox(`${x + delta.dx} ${y + delta.dy} ${width} ${height}`);
+        if (svgIsDraggingRef.current) {
+            // 處理滑鼠變動量的 SVG 座標轉換
+            let delta = {
+                dx: "",
+                dy: ""
+            }
+            handleSVGCoordinateTransfer({ e, delta });
+            const { x, y } = viewBoxOrigin;      
+            setViewBoxOrigin({ x: x + delta.dx, y: y + delta.dy })
         }
     }
-     
- 
+    
     function handleSvgCanvasMouseUp(){
-        // setSvgIsDragging(false);
         svgIsDraggingRef.current = false;
     }
 
@@ -165,40 +106,12 @@ function SvgCanvas() {
     function handleCircleMouseMove(e){
         e.stopPropagation();
         e.preventDefault();
-        // console.log(selectedCircle)
-
-        //  1. 取得滑鼠當前 viewport 中 client 座標值
-        let startClient = {
-            x: e.clientX,
-            y: e.clientY,
-        }
-
-        //  2. 計算對應回去的 SVG 座標值
-        let newSVGPoint = svgRef.current.createSVGPoint();
-        let CTM = svgRef.current.getScreenCTM();
-        newSVGPoint.x = startClient.x;
-        newSVGPoint.y = startClient.y;
-        let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-        //  3. 計算拖曳後滑鼠所在的 viewport client 座標值
-        let moveToClient = {
-            x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
-            y: e.clientY + e.movementY
-        }
-
-        // 4. 計算對應回去的 SVG 座標值
-        newSVGPoint = svgRef.current.createSVGPoint()
-        CTM = svgRef.current.getScreenCTM()
-        newSVGPoint.x = moveToClient.x
-        newSVGPoint.y = moveToClient.y
-        let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
-        //  5. 計算位移量
+        // 處理滑鼠變動量的 SVG 座標轉換
         let delta = {
-            dx: startSVGPoint.x - moveToSVGPoint.x,
-            dy: startSVGPoint.y - moveToSVGPoint.y
+            dx: "",
+            dy: ""
         }
-
+        handleSVGCoordinateTransfer({ e, delta });
         //  6. 設定新的節點位置  
         if (!selectedCircle) return
         if (isDragging && circleMoving) {
@@ -237,14 +150,14 @@ function SvgCanvas() {
         console.log("leave");
         setIsDragging(false);
         setCircleMoving(false);
-        setSelectedCircle({id: "default"});
-        svgRef.current.removeEventListener("pointerup", handleCircleMouseUp, {passive: true});    
+        setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
     }
 
     // zoom-in and zoom-out
     function handleWheel(event) {
         if (event.ctrlKey || event.metaKey) {
-            const [x, y, width, height] = viewBox.split(" ").map(num => parseFloat(num));
+            const { x, y } = viewBoxOrigin;
+            const { width, height } = SVGSize;
             const delta = event.deltaY > 0 ? 1.1 : 1/1.1;
             const mouseX = event.clientX;
             const mouseY = event.clientY;
@@ -252,7 +165,8 @@ function SvgCanvas() {
             const newHeight = height * delta;
             const offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
             const offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-            setViewBox(`${x + offsetX} ${y + offsetY} ${newWidth.toFixed(2)} ${newHeight.toFixed(2)}`);
+            setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+            setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });
         }
     }      
 
@@ -268,7 +182,7 @@ function SvgCanvas() {
         if (e.code === "Delete" && selectedCircle.id !== "default") {
             console.log(selectedCircle, selectedLines, selectedLines2);
             circles.splice(selectedCircle.id, 1)
-            setSelectedCircle({id: "default"});
+            setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
             setCircles([...circles]);
 
             const linesNotBindToSelectedNode = lines.filter((line) => line.id != selectedCircle.id);
@@ -276,12 +190,9 @@ function SvgCanvas() {
         }
     }
 
-    // 點擊SVG畫布時將圓點上的事件解註冊 
+    // 點擊SVG畫布解除選擇節點
     function resetSvgCanvas(e){
-        setSelectedCircle({id: "default"});
-        svgRef.current.removeEventListener("pointerdown", handleCircleMouseDown, {passive:true});
-        svgRef.current.removeEventListener("pointermove", handleCircleMouseMove, {passive:true});
-        svgRef.current.removeEventListener("pointerup", handleCircleMouseUp, {passive: true});
+        setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
     }
 
     // 創建新的線段節點
@@ -289,7 +200,6 @@ function SvgCanvas() {
         e.stopPropagation();
         // console.log(selectedCircle)
         // console.log("Add Node")
-        // console.log(e)
         
         function handleAddEndPointCircle(props){
             const {id, x2, y2} = props;
@@ -438,34 +348,24 @@ function SvgCanvas() {
         line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
     }
 
-    function handleLineCoordinateTransfer(props){
+    function handleSVGCoordinateTransfer(props){
         const { e, delta } = props
-        //  1. 取得滑鼠當前 viewport 中 client 座標值
-        let startClient = {
-            x: e.clientX,
-            y: e.clientY,
-        }
+        const CTM = svgRef.current.getScreenCTM().inverse();
+        const svgPoint = svgRef.current.createSVGPoint();
+        //  1. 滑鼠當前 viewport 中 client 座標值
+        svgPoint.x = e.clientX;
+        svgPoint.y = e.clientY;
 
         //  2. 計算對應回去的 SVG 座標值
-        let newSVGPoint = svgRef.current.createSVGPoint();
-        let CTM = svgRef.current.getScreenCTM();
-        newSVGPoint.x = startClient.x;
-        newSVGPoint.y = startClient.y;
-        let startSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
+        const startSVGPoint = svgPoint.matrixTransform(CTM);
 
         //  3. 計算拖曳後滑鼠所在的 viewport client 座標值
-        let moveToClient = {
-            x: e.clientX + e.movementX, // movement 可以取得滑鼠位移量
-            y: e.clientY + e.movementY
-        }
+        svgPoint.x = e.clientX + e.movementX;
+        svgPoint.y = e.clientY + e.movementY;
 
-        // 4. 計算對應回去的 SVG 座標值
-        newSVGPoint = svgRef.current.createSVGPoint()
-        CTM = svgRef.current.getScreenCTM()
-        newSVGPoint.x = moveToClient.x
-        newSVGPoint.y = moveToClient.y
-        let moveToSVGPoint = newSVGPoint.matrixTransform(CTM.inverse())
-
+        //  4. 計算對應回去的 SVG 座標值
+        const moveToSVGPoint = svgPoint.matrixTransform(CTM);
+ 
         //  5. 計算位移量
         delta.dx = startSVGPoint.x - moveToSVGPoint.x;
         delta.dy = startSVGPoint.y - moveToSVGPoint.y;      
@@ -481,31 +381,24 @@ function SvgCanvas() {
                 dx: "",
                 dy: ""
             }
-            handleLineCoordinateTransfer({e, delta});
+            handleSVGCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
             if (selectedCircle.r < 20) {
-                selectedCircle.r = 21;
-              } else {
-                selectedCircle.r += delta.dx;
-              }
-              setCircles(prevCircles => [...prevCircles.map(c => (c === selectedCircle ? selectedCircle : c))]);
-                 
+                    selectedCircle.r = 21;
+                } else {
+                    selectedCircle.r += delta.dx;
+                }
+            setCircles([...circles])     
             // 設定該節點的線段同步移動
             // 上
             lineAtNorthRef.current.forEach(line => {
                 console.log("N1")
-                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 // 動態曲線點使其為直線
                 handleUpdateLine(line, delta);
             })
             lineAtNorthRef2.current.forEach(line => {
                 console.log("N1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
                 handleUpdateLine(line, delta);
             })    
@@ -513,33 +406,21 @@ function SvgCanvas() {
             lineAtEastRef.current.forEach(line => {
                 console.log("E1")
                 line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);                    
             })
             lineAtEastRef2.current.forEach(line => {
                 console.log("E1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
                 line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);                    
             })
             // 下
             lineAtSouthRef.current.forEach(line => {
                 console.log("S1")
-                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);     
             })
             lineAtSouthRef2.current.forEach(line => {
                 console.log("S1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
                 line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;
                 handleUpdateLine(line, delta);     
             })
@@ -547,20 +428,13 @@ function SvgCanvas() {
             lineAtWestRef.current.forEach(line => {
                 console.log("W1")
                 line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);    
             })
             lineAtWestRef2.current.forEach(line => {
                 console.log("W1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);    
             })
-
             setLines([...lines])
 
         // 節點右半邊
@@ -571,30 +445,23 @@ function SvgCanvas() {
                 dx: "",
                 dy: ""
             }
-            handleLineCoordinateTransfer({e, delta});
+            handleSVGCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
             if (selectedCircle.r < 20) {
-                selectedCircle.r = 21;
-              } else {
-                selectedCircle.r -= delta.dx;
-              }
-              setCircles(prevCircles => [...prevCircles.map(c => (c === selectedCircle ? selectedCircle : c))]);
-
+                    selectedCircle.r = 21;
+                } else {
+                    selectedCircle.r -= delta.dx;
+                }
+            setCircles([...circles])
             // 上
             lineAtNorthRef.current.forEach(line => {
                 console.log("N1")
-                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 // 動態曲線點使其為直線
                 handleUpdateLine(line, delta);
             })
             lineAtNorthRef2.current.forEach(line => {
                 console.log("N1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
                 handleUpdateLine(line, delta);
             })    
@@ -602,33 +469,21 @@ function SvgCanvas() {
             lineAtEastRef.current.forEach(line => {
                 console.log("E1")
                 line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);                    
             })
             lineAtEastRef2.current.forEach(line => {
                 console.log("E1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
                 line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);                    
             })
             // 下
             lineAtSouthRef.current.forEach(line => {
                 console.log("S1")
-                line.x1 = line.x1;
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);     
             })
             lineAtSouthRef2.current.forEach(line => {
                 console.log("S1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
                 line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;
                 handleUpdateLine(line, delta);     
             })
@@ -636,17 +491,11 @@ function SvgCanvas() {
             lineAtWestRef.current.forEach(line => {
                 console.log("W1")
                 line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                line.y1 = line.y1;
-                line.x2 = line.x2;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);    
             })
             lineAtWestRef2.current.forEach(line => {
                 console.log("W1-2")
-                line.x1 = line.x1;
-                line.y1 = line.y1;
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                line.y2 = line.y2;
                 handleUpdateLine(line, delta);    
             })            
             setLines([...lines])  
@@ -675,7 +524,7 @@ function SvgCanvas() {
                 id="svg"
                 className="svg"
                 ref={svgRef}
-                viewBox={viewBox}
+                viewBox={`${viewBoxOrigin.x} ${viewBoxOrigin.y} ${SVGSize.width} ${SVGSize.height}`}
                 xmlns="http://www.w3.org/2000/svg"
                 panMode={svgPanMode}
                 onWheel={handleWheel}
@@ -688,7 +537,6 @@ function SvgCanvas() {
                     handleSvgCanvasMove(e);
                     handleCircleMouseMove(e);
                     handleTransformMove(e);
-                    handleDetectSvgBonudary(e);
                 }}
                 onPointerUp={(e) =>{
                     handleSvgCanvasMouseUp(e);
@@ -734,175 +582,136 @@ function SvgCanvas() {
                                 目前無法打字
                             </ItemsText>
                         </ForeignObject>
-                        <foreignObject
-                            x={circle.cx - 24} 
-                            y={circle.cy - (circle.r + 60)}
-                            width={50} 
-                            height={50}
-                        >
-                            <CreateNode 
-                                visibility={
-                                    circle.id === selectedCircle.id
-                                        ? "visible"
-                                        : "hidden"
-                                }
-                                title={"Create New Node Top"}
-                                onPointerDown={handleAddNode}
-                                // onMouseMove={() => console.log("node")} // 新增浮水印給使用者增加圓形或三角形
-                            >
-                                <TbArrowBigUpLine size={50}></TbArrowBigUpLine>
-                            </CreateNode>
-                        </foreignObject>
-                        <foreignObject
-                            x={circle.cx + (circle.r + 10)} 
-                            y={circle.cy - 25}
-                            width={50} 
-                            height={50}
-                        >
-                            <CreateNode 
-                                visibility={
-                                    circle.id === selectedCircle.id
-                                        ? "visible"
-                                        : "hidden"
-                                }
-                                title={"Create New Node Right"}
-                                onPointerDown={handleAddNode}
-                            >
-                                <TbArrowBigRightLine size={50}></TbArrowBigRightLine>
-                            </CreateNode>
-                        </foreignObject>
-                        <foreignObject
-                            x={circle.cx - 24} 
-                            y={circle.cy + (circle.r) + 10 }
-                            width={50} 
-                            height={50}
-                        >
-                            <CreateNode 
-                                visibility={
-                                    circle.id === selectedCircle.id
-                                        ? "visible"
-                                        : "hidden"
-                                }
-                                title={"Create New Node Down"}
-                                onPointerDown={handleAddNode}
-                            >
-                                <TbArrowBigDownLine size={50}></TbArrowBigDownLine>
-                            </CreateNode>
-                        </foreignObject>
-                        <foreignObject
-                            x={circle.cx - (circle.r + 60) } 
-                            y={circle.cy - 24}
-                            width={50} 
-                            height={50}
-                        >
-                            <CreateNode 
-                                visibility={
-                                    circle.id === selectedCircle.id
-                                        ? "visible"
-                                        : "hidden"
-                                }
-                                title={"Create New Node Left"}
-                                onPointerDown={handleAddNode}
-                            >
-                                <TbArrowBigLeftLine size={50}></TbArrowBigLeftLine>
-                            </CreateNode>
-                        </foreignObject>
-                        {/* 左上控制點 */}
-                        <TransformRectNwResize
-                            visibility={
-                                circle.id === selectedCircle.id
-                                ? "visible"
-                                : "hidden"
-                            }
-                            id={circle.id}
-                            className="upperLeft"
-                            x={circle.cx - circle.r -10}
-                            y={circle.cy - circle.r -10}
-                            height={10}
-                            width={10}
-                            stroke= "#b471ea"
-                            strokeWidth="3"
-                            strokeDasharray= "10, 5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            fill= "#f0f4f7"
-                            onPointerDown={handleTransformDown}
-                            // onPointerMove={handleTransformMove}
-                            onPointerUp={handleTransformUp}
-                        />
-                        {/* 右上控制點 */}
-                        <TransformRectNeResize
-                            visibility={
-                                circle.id === selectedCircle.id
-                                ? "visible"
-                                : "hidden"
-                            }
-                            id={circle.id}
-                            className="upperRight"
-                            x={circle.cx + circle.r}
-                            y={circle.cy - circle.r -10}
-                            height={10}
-                            width={10}
-                            stroke= "#b471ea"
-                            strokeWidth="3"
-                            strokeDasharray= "20, 5, 10"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            fill= "#f0f4f7"
-                            onPointerDown={handleTransformDown}
-                            // onPointerMove={handleTransformMove}
-                            onPointerUp={handleTransformUp}
-                        />
-                        {/* 右下控制點 */}
-                        <TransformRectNwResize
-                            visibility={
-                                circle.id === selectedCircle.id
-                                ? "visible"
-                                : "hidden"
-                            }
-                            id={circle.id}
-                            className="lowerRight"                        
-                            x={circle.cx + circle.r}
-                            y={circle.cy + circle.r}
-                            height={10}
-                            width={10}
-                            stroke= "#b471ea"
-                            strokeWidth="3"
-                            strokeDasharray= "5, 5, 20"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            fill= "#f0f4f7"
-                            onPointerDown={handleTransformDown}
-                            // onPointerMove={handleTransformMove}
-                            onPointerUp={handleTransformUp}
-                        />
-                        {/* 左下控制點 */}
-                        <TransformRectNeResize
-                            visibility={
-                                circle.id === selectedCircle.id
-                                ? "visible"
-                                : "hidden"
-                            }
-                            id={circle.id}
-                            className="lowerLeft"                        
-                            x={circle.cx - circle.r -10}
-                            y={circle.cy + circle.r}
-                            height={10}
-                            width={10}
-                            stroke= "#b471ea"
-                            strokeWidth="3"
-                            strokeDasharray= "20, 5, 10, 5"
-                            strokeDashoffset={20}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            fill= "#f0f4f7"
-                            onPointerDown={handleTransformDown}
-                            // onPointerMove={handleTransformMove}
-                            onPointerUp={handleTransformUp}
-                        />                                                
                     </GroupWrapper>
                 ))}
-
+                <ToolGroupWrapper display={ selectedCircle.id !== "default" ? "block" : "none" }>
+                    <ForeignObjectNodeTool
+                        x={selectedCircle.cx - 24} 
+                        y={selectedCircle.cy - (selectedCircle.r + 60)}
+                        width={50} 
+                        height={50}
+                    >
+                        <CreateNode 
+                            title={"Create New Node Top"}
+                            onPointerDown={handleAddNode}
+                            // onMouseMove={() => console.log("node")} // 新增浮水印給使用者增加圓形或三角形
+                        >
+                            <TbArrowBigUpLine size={50}></TbArrowBigUpLine>
+                        </CreateNode>
+                    </ForeignObjectNodeTool>
+                    <ForeignObjectNodeTool
+                        x={selectedCircle.cx + (selectedCircle.r + 10)} 
+                        y={selectedCircle.cy - 25}
+                        width={50} 
+                        height={50}
+                    >
+                        <CreateNode 
+                            title={"Create New Node Right"}
+                            onPointerDown={handleAddNode}
+                        >
+                            <TbArrowBigRightLine size={50}></TbArrowBigRightLine>
+                        </CreateNode>
+                    </ForeignObjectNodeTool>
+                    <ForeignObjectNodeTool                      
+                        x={selectedCircle.cx - 24} 
+                        y={selectedCircle.cy + (selectedCircle.r) + 10 }
+                        width={50} 
+                        height={50}
+                    >
+                        <CreateNode 
+                            title={"Create New Node Down"}
+                            onPointerDown={handleAddNode}
+                        >
+                            <TbArrowBigDownLine size={50}></TbArrowBigDownLine>
+                        </CreateNode>
+                    </ForeignObjectNodeTool>
+                    <ForeignObjectNodeTool
+                        x={selectedCircle.cx - (selectedCircle.r + 60) } 
+                        y={selectedCircle.cy - 24}
+                        width={50} 
+                        height={50}
+                    >
+                        <CreateNode 
+                            title={"Create New Node Left"}
+                            onPointerDown={handleAddNode}
+                        >
+                            <TbArrowBigLeftLine size={50}></TbArrowBigLeftLine>
+                        </CreateNode>
+                    </ForeignObjectNodeTool>
+                    {/* 左上控制點 */}
+                    <TransformRectNwResize
+                        id={selectedCircle.id}
+                        className="upperLeft"
+                        x={selectedCircle.cx - selectedCircle.r -10}
+                        y={selectedCircle.cy - selectedCircle.r -10}
+                        height={10}
+                        width={10}
+                        stroke= "#b471ea"
+                        strokeWidth="3"
+                        strokeDasharray= "10, 5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill= "#f0f4f7"
+                        onPointerDown={handleTransformDown}
+                        // onPointerMove={handleTransformMove}
+                        onPointerUp={handleTransformUp}
+                    />
+                    {/* 右上控制點 */}
+                    <TransformRectNeResize
+                        id={selectedCircle.id}
+                        className="upperRight"
+                        x={selectedCircle.cx + selectedCircle.r}
+                        y={selectedCircle.cy - selectedCircle.r -10}
+                        height={10}
+                        width={10}
+                        stroke= "#b471ea"
+                        strokeWidth="3"
+                        strokeDasharray= "20, 5, 10"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill= "#f0f4f7"
+                        onPointerDown={handleTransformDown}
+                        // onPointerMove={handleTransformMove}
+                        onPointerUp={handleTransformUp}
+                    />
+                    {/* 右下控制點 */}
+                    <TransformRectNwResize
+                        id={selectedCircle.id}
+                        className="lowerRight"                        
+                        x={selectedCircle.cx + selectedCircle.r}
+                        y={selectedCircle.cy + selectedCircle.r}
+                        height={10}
+                        width={10}
+                        stroke= "#b471ea"
+                        strokeWidth="3"
+                        strokeDasharray= "5, 5, 20"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill= "#f0f4f7"
+                        onPointerDown={handleTransformDown}
+                        // onPointerMove={handleTransformMove}
+                        onPointerUp={handleTransformUp}
+                    />
+                    {/* 左下控制點 */}
+                    <TransformRectNeResize
+                        id={selectedCircle.id}
+                        className="lowerLeft"                        
+                        x={selectedCircle.cx - selectedCircle.r -10}
+                        y={selectedCircle.cy + selectedCircle.r}
+                        height={10}
+                        width={10}
+                        stroke= "#b471ea"
+                        strokeWidth="3"
+                        strokeDasharray= "20, 5, 10, 5"
+                        strokeDashoffset={20}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill= "#f0f4f7"
+                        onPointerDown={handleTransformDown}
+                        // onPointerMove={handleTransformMove}
+                        onPointerUp={handleTransformUp}
+                    />                                                
+                </ToolGroupWrapper>
             </Svg>
             <PanMode 
                 svgRef={svgRef}
@@ -913,11 +722,9 @@ function SvgCanvas() {
                 handleSvgCanvasMouseDown={handleSvgCanvasMouseDown}
                 handleSvgCanvasMove={handleSvgCanvasMove}
                 handleSvgCanvasMouseUp={handleSvgCanvasMouseUp}
-                viewBox={viewBox}
-                setViewBox={setViewBox}
             >
             </PanMode>
-            <Zoom viewBox={viewBox} setViewBox={setViewBox}/>
+            <Zoom SVGSize={SVGSize}/>
         </Main>
     )
 }
@@ -971,6 +778,9 @@ const Svg = styled.svg`
 const GroupWrapper = styled.g`
 `
 
+const ToolGroupWrapper = styled.g`
+`
+
 const CircleSvg = styled.circle`
     cursor: move;
 `
@@ -993,6 +803,9 @@ const ForeignObject = styled.foreignObject`
 
 `
 
+const ForeignObjectNodeTool = styled.foreignObject`
+`
+
 const ItemsText = styled.div`
     display: flex;
     width: 100%;
@@ -1002,7 +815,6 @@ const ItemsText = styled.div`
 `
 
 const CreateNode = styled.button`
-    visibility: ${props => props.visibility || "hidden"};
     position: absolute;
     height: 50px;
     width: 50px;

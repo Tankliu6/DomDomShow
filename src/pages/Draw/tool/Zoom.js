@@ -5,8 +5,8 @@ import styled from "styled-components";
 
 
 function Zoom(props){
-    const { viewBox } = props;
-    const zoomPercent = Math.floor(( 960 / viewBox.split(" ")[2]) * 100) 
+    const { SVGSize } = props;
+    const zoomPercent = Math.floor((960 / SVGSize.width) * 100);
     return (
         <Wrapper>
             <Percent>
