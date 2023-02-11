@@ -45,8 +45,8 @@ function SvgCanvas() {
         const { width, height } = SVGSize;
         const newCircle = {
             id: uuid(),
-            cx: Number(width / 2) + Number(x),
-            cy: Number(height / 2) + Number(y),
+            cx: width / 2 + x,
+            cy: height / 2 + y,
             r: 40,
         };
         setCircles([...circles, newCircle]);
@@ -161,12 +161,28 @@ function SvgCanvas() {
             const delta = event.deltaY > 0 ? 1.1 : 1/1.1;
             const mouseX = event.clientX;
             const mouseY = event.clientY;
-            const newWidth = width * delta;
-            const newHeight = height * delta;
-            const offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
-            const offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-            setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
-            setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });
+            let newWidth = width * delta; // zoom 最大 200% 最小 50%
+            let newHeight = height * delta;
+            let offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+            let offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+            if ((960 / newWidth).toFixed(2) < 0.49){
+                newWidth = 1920;
+                newHeight = 1080;
+                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+            } else if ((960 / newWidth).toFixed(2) > 2.01){
+                newWidth = 480;
+                newHeight = 270;
+                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+            } else {
+                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+            }
         }
     }      
 
@@ -722,9 +738,13 @@ function SvgCanvas() {
                 handleSvgCanvasMouseDown={handleSvgCanvasMouseDown}
                 handleSvgCanvasMove={handleSvgCanvasMove}
                 handleSvgCanvasMouseUp={handleSvgCanvasMouseUp}
-            >
-            </PanMode>
-            <Zoom SVGSize={SVGSize}/>
+            />
+            <Zoom 
+                SVGSize={SVGSize} 
+                setSVGSize={setSVGSize} 
+                viewBoxOrigin={viewBoxOrigin} 
+                setViewBoxOrigin={setViewBoxOrigin}
+            />
         </Main>
     )
 }
