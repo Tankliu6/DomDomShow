@@ -14,6 +14,7 @@ import {
 function SvgCanvas() {
     const svgRef = useRef(null);
     const svgIsDraggingRef = useRef(false);
+    const bezierCurvePointIsDraggingRef = useRef({isDragging: false, point: "default"});
     const circleRef = useRef(null);
     const deleteRef = useRef();
     const leftRightRef = useRef(null);
@@ -35,6 +36,7 @@ function SvgCanvas() {
     const [svgIsDragging, setSvgIsDragging] = useState(false);
     const [svgPanMode, setSvgPanMode] = useState({grab: "default", grabbing: "default"});
     const [lines, setLines] = useState([]);
+    const [focusingLine, setFocusingLine] = useState({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0});
     const [selectedLines, setSelectedLines] = useState([]);
     const [selectedLines2, setSelectedLines2] = useState([]);
     const [transformIsDragging, setTransformIsDragging] = useState(false);
@@ -78,23 +80,23 @@ function SvgCanvas() {
     function handleCircleMouseDown(e) {
         e.stopPropagation();
 
-        const id = e.target.id; // 立即於此點擊事件中找到被點擊的 id
+        const targetCircleId = e.target.id; // 立即於此點擊事件中找到被點擊的 id
         setIsDragging(true);
-        console.log(id, selectedCircle)
+        console.log(targetCircleId, selectedCircle)
 
         isDragging ? setCircleMoving(true) : null;
 
-        const selected = circles.find((c) => c.id === id);
+        const selected = circles.find((c) => c.id === targetCircleId);
         setSelectedCircle(selected);
 
-        const linesBindToSelectedNode = lines.filter((l) => l.id === id);
+        const linesBindToSelectedNode = lines.filter((line) => line.startNodeId === targetCircleId);
         setSelectedLines([...linesBindToSelectedNode]);
 
-        const linesBindToSelectedNode2 = lines.filter((l) => l.id2 === id);
+        const linesBindToSelectedNode2 = lines.filter((line) => line.endNodeId === targetCircleId);
         setSelectedLines2([...linesBindToSelectedNode2])
 
         // 判斷該節點 isDragging === true 時點擊另一節點馬上能拖動的問題
-        if (id === selectedCircle.id) {
+        if (targetCircleId === selectedCircle.id) {
             svgRef.current.addEventListener("pointerup", handleCircleMouseUp, {once: true});
         } else {
             setCircleMoving(false);
@@ -124,21 +126,19 @@ function SvgCanvas() {
             selectedLines.forEach(line => {
                 line.x1 -= delta.dx; 
                 line.y1 -= delta.dy;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;
+                line.cpx1 -= delta.dx;
+                line.cpy1 -= delta.dy;
+                line.cpx2 -= delta.dx;
+                line.cpy2 -= delta.dy;
             })
             // 由其他節點出發至此被移動節點的線段連接點    
             selectedLines2.forEach(line => {
                 line.x2 -= delta.dx;
                 line.y2 -= delta.dy;
-                // 動態曲線點使其為直線
-                line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-                line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-                line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;
+                line.cpx1 -= delta.dx;
+                line.cpy1 -= delta.dy;
+                line.cpx2 -= delta.dx;
+                line.cpy2 -= delta.dy;
             })
 
             setLines([...lines])
@@ -209,6 +209,7 @@ function SvgCanvas() {
     // 點擊SVG畫布解除選擇節點
     function resetSvgCanvas(e){
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
+        setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0});
     }
 
     // 創建新的線段節點
@@ -236,10 +237,11 @@ function SvgCanvas() {
         // console.log(svgX, svgY)
 
         const newLine = {
+            id: uuid(),
             // 開始節點 id
-            id: selectedCircle.id,
+            startNodeId: selectedCircle.id,
             // 終點節點 id
-            id2: endPointCircleId,
+            endNodeId: endPointCircleId,
             // M x1 y1
             x1: selectedCircle.cx,
             y1: selectedCircle.cy,
@@ -258,12 +260,12 @@ function SvgCanvas() {
             console.log(1)
             newLine.x1 = selectedCircle.cx + selectedCircle.r;
             // newLine.y1 = selectedCircle.cy;
-            newLine.cpx1 = selectedCircle.cx + selectedCircle.r;
-            newLine.cpx2 = selectedCircle.cx + selectedCircle.r;
+            newLine.cpx1 = selectedCircle.cx + selectedCircle.r + 50; // 線段 1/4
+            newLine.cpx2 = selectedCircle.cx + selectedCircle.r + 150;// 線段 3/4
             newLine.x2 = selectedCircle.cx + selectedCircle.r + 200;
             // newLine.y2 = selectedCircle.cy;
             handleAddEndPointCircle({
-                id: newLine.id2,
+                id: newLine.endNodeId,
                 x2: selectedCircle.cx + selectedCircle.r + 240,
                 y2: selectedCircle.cy
             })  
@@ -271,13 +273,13 @@ function SvgCanvas() {
             // 左邊
             console.log(2)
             newLine.x1 = selectedCircle.cx - selectedCircle.r;
-            newLine.cpx1 = selectedCircle.cx - selectedCircle.r;
-            newLine.cpx2 = selectedCircle.cx - selectedCircle.r;
+            newLine.cpx1 = selectedCircle.cx - selectedCircle.r - 50;
+            newLine.cpx2 = selectedCircle.cx - selectedCircle.r - 150;
             // newLine.y1 = selectedCircle.cy;
             newLine.x2 = selectedCircle.cx - selectedCircle.r - 200;
             // newLine.y2 = selectedCircle.cy;
             handleAddEndPointCircle({
-                id: newLine.id2,
+                id: newLine.endNodeId,
                 x2: selectedCircle.cx - selectedCircle.r - 240,
                 y2: selectedCircle.cy
             }) 
@@ -286,12 +288,12 @@ function SvgCanvas() {
             console.log(3)
             // newLine.x1 = selectedCircle.cx;
             newLine.y1 = selectedCircle.cy + selectedCircle.r;
-            newLine.cpy1 = selectedCircle.cy + selectedCircle.r;
-            newLine.cpy2 = selectedCircle.cy + selectedCircle.r;
+            newLine.cpy1 = selectedCircle.cy + selectedCircle.r + 50;
+            newLine.cpy2 = selectedCircle.cy + selectedCircle.r + 150;
             // newLine.x2 = selectedCircle.cx;
             newLine.y2 = selectedCircle.cy + selectedCircle.r + 200;
             handleAddEndPointCircle({
-                id: newLine.id2,
+                id: newLine.endNodeId,
                 x2: selectedCircle.cx,
                 y2: selectedCircle.cy + selectedCircle.r + 240
             }) 
@@ -300,12 +302,12 @@ function SvgCanvas() {
             console.log(4)
             // newLine.x1 = selectedCircle.cx;
             newLine.y1 = selectedCircle.cy - selectedCircle.r;
-            newLine.cpy1 = selectedCircle.cy - selectedCircle.r;
-            newLine.cpy2 = selectedCircle.cy - selectedCircle.r;
+            newLine.cpy1 = selectedCircle.cy - selectedCircle.r - 50;
+            newLine.cpy2 = selectedCircle.cy - selectedCircle.r - 150;
             // newLine.x2 = selectedCircle.cx;
             newLine.y2 = selectedCircle.cy - selectedCircle.r - 200;
             handleAddEndPointCircle({
-                id: newLine.id2,
+                id: newLine.endNodeId,
                 x2: selectedCircle.cx,
                 y2: selectedCircle.cy - selectedCircle.r - 240
             }) 
@@ -325,39 +327,39 @@ function SvgCanvas() {
         }
 
         // 上
-        const lineAtNorth = lines.filter((line) => line.id === id && line.y1 < selectedCircle.cy);
+        const lineAtNorth = lines.filter((line) => line.startNodeId === id && line.y1 < selectedCircle.cy);
         // console.log(lineAtNorth);
         lineAtNorthRef.current = [...lineAtNorth];
 
-        const lineAtNorth2 = lines.filter((line) => line.id2 === id && line.y2 < selectedCircle.cy);
+        const lineAtNorth2 = lines.filter((line) => line.endNodeId === id && line.y2 < selectedCircle.cy);
         lineAtNorthRef2.current = [...lineAtNorth2]
 
         // 右
-        const lineAtEast = lines.filter((line) => line.id === id && line.x1 > selectedCircle.cx);
+        const lineAtEast = lines.filter((line) => line.startNodeId === id && line.x1 > selectedCircle.cx);
         // console.log(lineAtEast);
         lineAtEastRef.current = [...lineAtEast];
 
-        const lineAtEast2 = lines.filter((line) => line.id2 === id && line.x2 > selectedCircle.cx);
+        const lineAtEast2 = lines.filter((line) => line.endNodeId === id && line.x2 > selectedCircle.cx);
         lineAtEastRef2.current = [...lineAtEast2]
 
         // 下
-        const lineAtSouth = lines.filter((line) => line.id === id && line.y1 > selectedCircle.cy);
+        const lineAtSouth = lines.filter((line) => line.startNodeId === id && line.y1 > selectedCircle.cy);
         // console.log(lineAtSouth);
         lineAtSouthRef.current = [...lineAtSouth];
 
-        const lineAtSouth2 = lines.filter((line) => line.id2 === id && line.y2 > selectedCircle.cy);
+        const lineAtSouth2 = lines.filter((line) => line.endNodeId === id && line.y2 > selectedCircle.cy);
         lineAtSouthRef2.current = [...lineAtSouth2];
 
         // 左
-        const lineAtWest = lines.filter((line) => line.id === id && line.x1 < selectedCircle.cx);
+        const lineAtWest = lines.filter((line) => line.startNodeId === id && line.x1 < selectedCircle.cx);
         // console.log(lineAtWest);
         lineAtWestRef.current = [...lineAtWest];
 
-        const lineAtWest2 = lines.filter((line) => line.id2 === id && line.x2 < selectedCircle.cx);
+        const lineAtWest2 = lines.filter((line) => line.endNodeId === id && line.x2 < selectedCircle.cx);
         lineAtWestRef2.current = [...lineAtWest2]
     }
 
-    function handleUpdateLine(line, delta){
+    function handleNodeLineStraight(line, delta){
         line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
         line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
         line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
@@ -410,46 +412,37 @@ function SvgCanvas() {
             lineAtNorthRef.current.forEach(line => {
                 console.log("N1")
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
-                // 動態曲線點使其為直線
-                handleUpdateLine(line, delta);
             })
             lineAtNorthRef2.current.forEach(line => {
                 console.log("N1-2")
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
-                handleUpdateLine(line, delta);
             })    
             // 右
             lineAtEastRef.current.forEach(line => {
                 console.log("E1")
-                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);                    
+                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;                   
             })
             lineAtEastRef2.current.forEach(line => {
                 console.log("E1-2")
-                line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);                    
+                line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;                   
             })
             // 下
             lineAtSouthRef.current.forEach(line => {
                 console.log("S1")
-                line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);     
+                line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
             lineAtSouthRef2.current.forEach(line => {
                 console.log("S1-2")
-                line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);     
+                line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;  
             })
             // 左
             lineAtWestRef.current.forEach(line => {
                 console.log("W1")
-                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                handleUpdateLine(line, delta);    
+                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;  
             })
             lineAtWestRef2.current.forEach(line => {
                 console.log("W1-2")
-                line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                handleUpdateLine(line, delta);    
+                line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;   
             })
             setLines([...lines])
 
@@ -473,46 +466,37 @@ function SvgCanvas() {
             lineAtNorthRef.current.forEach(line => {
                 console.log("N1")
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
-                // 動態曲線點使其為直線
-                handleUpdateLine(line, delta);
             })
             lineAtNorthRef2.current.forEach(line => {
                 console.log("N1-2")
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
-                handleUpdateLine(line, delta);
             })    
             // 右
             lineAtEastRef.current.forEach(line => {
                 console.log("E1")
-                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);                    
+                line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;                 
             })
             lineAtEastRef2.current.forEach(line => {
                 console.log("E1-2")
-                line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);                    
+                line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;                 
             })
             // 下
             lineAtSouthRef.current.forEach(line => {
                 console.log("S1")
-                line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);     
+                line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
             lineAtSouthRef2.current.forEach(line => {
                 console.log("S1-2")
-                line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;
-                handleUpdateLine(line, delta);     
+                line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
             // 左
             lineAtWestRef.current.forEach(line => {
                 console.log("W1")
-                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                handleUpdateLine(line, delta);    
+                line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;   
             })
             lineAtWestRef2.current.forEach(line => {
                 console.log("W1-2")
-                line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;
-                handleUpdateLine(line, delta);    
+                line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;  
             })            
             setLines([...lines])  
         }
@@ -522,6 +506,84 @@ function SvgCanvas() {
         e.stopPropagation();
         setTransformIsDragging(false);
     }
+
+    function handleLineDown(e){
+        e.stopPropagation();
+        const targetLineId = e.target.id;
+        const focusingLine = lines.find(line => line.id === targetLineId);
+        setFocusingLine(focusingLine);
+        console.log(focusingLine)
+    }
+
+    // function handleLineUp(e){
+    //     e.stopPropagation();
+    //     setFocusingLine({id: "default"})
+    // }
+
+    function handleLineBezierCurveDown(e){
+        e.stopPropagation();
+        console.log(focusingLine)
+        bezierCurvePointIsDraggingRef.current = { isDragging: true, point: e.target.id };
+    }
+
+    function handleLineBezierCurveMove(e){
+        if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "BezierP1"){
+            let delta={
+                dx: "",
+                dy: ""
+            }
+            handleSVGCoordinateTransfer({e, delta});
+            focusingLine.cpx1 -= delta.dx;
+            focusingLine.cpy1 -= delta.dy;
+            setLines([...lines]);   
+        } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "BezierP2") {
+            let delta={
+                dx: "",
+                dy: ""
+            }
+            handleSVGCoordinateTransfer({e, delta});
+            focusingLine.cpx2 -= delta.dx;
+            focusingLine.cpy2 -= delta.dy;
+            setLines([...lines]);
+        } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "startNode"){
+            let delta={
+                dx: "",
+                dy: ""
+            }
+            handleSVGCoordinateTransfer({e, delta});
+            focusingLine.x1 -= delta.dx;
+            focusingLine.y1 -= delta.dy;
+            // handleLineChangeNode()
+            setLines([...lines]);   
+        } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "endNode") {
+            let delta={
+                dx: "",
+                dy: ""
+            }
+            handleSVGCoordinateTransfer({e, delta});
+            focusingLine.x2 -= delta.dx;
+            focusingLine.y2 -= delta.dy;
+            setLines([...lines]);
+        }
+    }
+
+    function handleLineBezierCurveUp(){
+        bezierCurvePointIsDraggingRef.current = false;
+    }
+
+    // function handleLineChangeNode(){
+    //     const nearestCircle = circles.find(circle => )
+    // }
+
+    // function handleLineChangeNodeDown(e){
+    //     e.stopPropagation();
+    //     console.log(focusingLine, e.target);
+    //     bezierCurvePointIsDraggingRef.current = { isDragging: true, point: e.target.id };
+    // }
+
+    // function handleLineChangeNodeMove(e){
+
+    // }
 
     // 將所有點擊動作彙整，待優化
     // function drag(){
@@ -553,22 +615,27 @@ function SvgCanvas() {
                     handleSvgCanvasMove(e);
                     handleCircleMouseMove(e);
                     handleTransformMove(e);
+                    handleLineBezierCurveMove(e);
                 }}
                 onPointerUp={(e) =>{
                     handleSvgCanvasMouseUp(e);
                     handleTransformUp(e);
+                    handleLineBezierCurveUp();
                 }}
             >
                 {lines.map((line) => (
-                    <GroupWrapper key={line.id + uuid()}>
-                            <PathSvg
-                                tabIndex={-1}
-                                d={`M ${line.x1} ${line.y1} C ${line.cpx1} ${line.cpy1}, ${line.cpx2} ${line.cpy2}, ${line.x2} ${line.y2}`}
-                                stroke="black"
-                                strokeWidth="2"
-                                fill="transparent"
-                            >
-                            </PathSvg>
+                    <GroupWrapper
+                        key={line.id}
+                    >
+                        <PathSvg
+                            id={line.id}
+                            d={`M ${line.x1} ${line.y1} C ${line.cpx1} ${line.cpy1}, ${line.cpx2} ${line.cpy2}, ${line.x2} ${line.y2}`}
+                            stroke="#443755"
+                            strokeWidth="4"
+                            fill="transparent"
+                            onPointerDown={handleLineDown}
+                        >
+                        </PathSvg>
                     </GroupWrapper>
                 ))}
                 {circles.map((circle) => (
@@ -585,6 +652,7 @@ function SvgCanvas() {
                                     : "#ffffff"
                             }
                             onPointerDown={(e) => handleCircleMouseDown(e)}
+                            onPointerOver={() => console.log(123)}
                         />
                         <ForeignObject
                             // style={{pointerEvents: "none"}} // 讓下方圓形可以被點擊
@@ -598,9 +666,16 @@ function SvgCanvas() {
                                 目前無法打字
                             </ItemsText>
                         </ForeignObject>
+                        {/* <PointToDetect 
+                            id={circle.id} 
+                            cx={circle.cx} 
+                            cy={circle.cy - circle.r} 
+                            r={10}
+                            onPointerUp={() => console.log("upupup")} 
+                        /> */}
                     </GroupWrapper>
                 ))}
-                <ToolGroupWrapper display={ selectedCircle.id !== "default" ? "block" : "none" }>
+                <GroupWrapper display={ selectedCircle.id !== "default" ? "block" : "none" }>
                     <ForeignObjectNodeTool
                         x={selectedCircle.cx - 24} 
                         y={selectedCircle.cy - (selectedCircle.r + 60)}
@@ -727,7 +802,35 @@ function SvgCanvas() {
                         // onPointerMove={handleTransformMove}
                         onPointerUp={handleTransformUp}
                     />                                                
-                </ToolGroupWrapper>
+                </GroupWrapper>
+                <GroupWrapper display={ focusingLine.id !== "default" ? "block" : "none" }>
+                    <Line x1={focusingLine.x1} y1={focusingLine.y1} x2={focusingLine.cpx1} y2={focusingLine.cpy1}></Line>
+                    <Line x1={focusingLine.x2} y1={focusingLine.y2} x2={focusingLine.cpx2} y2={focusingLine.cpy2}></Line>
+                    <CircleToSetLine
+                        id={"startNode"} 
+                        cx={focusingLine.x1} 
+                        cy={focusingLine.y1}
+                        onPointerDown={(e) => handleLineBezierCurveDown(e)} 
+                    />
+                    <CircleToBezier 
+                        id={"BezierP1"} 
+                        cx={focusingLine.cpx1} 
+                        cy={focusingLine.cpy1} 
+                        onPointerDown={(e) => handleLineBezierCurveDown(e)}
+                    />
+                    <CircleToBezier
+                        id={"BezierP2"} 
+                        cx={focusingLine.cpx2} 
+                        cy={focusingLine.cpy2} 
+                        onPointerDown={(e) => handleLineBezierCurveDown(e)}
+                    />
+                    <CircleToSetLine
+                        id={"endNode"} 
+                        cx={focusingLine.x2} 
+                        cy={focusingLine.y2}
+                        onPointerDown={(e) => handleLineBezierCurveDown(e)}  
+                    />
+                </GroupWrapper>
             </Svg>
             <PanMode 
                 svgRef={svgRef}
@@ -798,14 +901,14 @@ const Svg = styled.svg`
 const GroupWrapper = styled.g`
 `
 
-const ToolGroupWrapper = styled.g`
-`
-
 const CircleSvg = styled.circle`
     cursor: move;
 `
 const PathSvg = styled.path`
     cursor: pointer;
+    :hover{
+        stroke: #5b6766;
+    }
 `
 
 const TransformRectNeResize = styled.rect`
@@ -844,5 +947,33 @@ const CreateNode = styled.button`
     cursor: pointer;
     :hover{
         background-color: #cccccc;
+    }
+`
+
+const CircleToSetLine = styled.circle`
+    r: 5;
+    fill: #3cc6b8;
+    stroke: #551a1a;
+    stroke-width: 1;
+    cursor: pointer;
+    :active{
+        r: 10;
+        fill: #ee3b65;
+    }
+`
+
+const CircleToBezier = styled(CircleToSetLine)`
+    fill: #c65e3c;
+`
+
+const Line = styled.line`
+    stroke: #8f0032;
+    stroke-dasharray: 10 5;
+`
+
+const PointToDetect= styled.circle`
+    cursor: crosshair;
+    :hover{
+        fill: #00ff1a7e;
     }
 `

@@ -123,8 +123,8 @@ function Zoom(props){
             <Percent>
                 {zoomPercent + "%"}
             </Percent>
-            <ZoomIn>
-                <FaSearchPlus onPointerOver={handleZoomInAlt} onPointerOut={handleZoomInAlt} onClick={handleZoomIn}/>
+            <ZoomIn onPointerOver={handleZoomInAlt} onPointerOut={handleZoomInAlt} onClick={handleZoomIn}>
+                <FaSearchPlus />
                 <ZoomInAlt ref={zoomInRef}>Zoom In</ZoomInAlt>
             </ZoomIn>
         </Wrapper>
@@ -193,4 +193,9 @@ const ZoomOutAlt = styled.div`
 `
 
 const ZoomInAlt = styled(ZoomOutAlt)`
+`
+
+const ZoomOutIcon = styled(FaSearchMinus)`
+    size: 36;
+    padding: 20;
 `
