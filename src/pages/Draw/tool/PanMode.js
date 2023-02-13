@@ -1,4 +1,4 @@
-import React, {useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import styled from "styled-components";
 import { MdOutlinePanTool } from "react-icons/md";
 
@@ -40,20 +40,30 @@ function PanMode(props) {
                 grabbing: "grabbing"
             })
         }
-
     }
 
     function handleAlt() {
-        if (altRef.current.style.display != "block"){
-            altRef.current.style.display = "block"
+        if (altRef.current.style.display != "flex"){
+            altRef.current.style.display = "flex"
         } else {
             altRef.current.style.display = "none"
         }
     }
 
+    useEffect(() => {
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Space") {
+                handleSvgPanModeSwitch();
+            }
+        })
+    }, [svgPanMode])
+
     return(
         <PanContainer onPointerOver={handleAlt} onPointerOut={handleAlt} onClick={handleSvgPanModeSwitch} theme={theme}>
-            <Alt ref={altRef}>Pan mode</Alt>
+            <Alt ref={altRef}>
+                Pan mode 
+                <P>Space</P>
+            </Alt>
             <Pan theme={theme}></Pan>
         </PanContainer>    
     )
@@ -87,7 +97,9 @@ const Pan = styled(MdOutlinePanTool)`
 `
 
 const Alt = styled.div`
-    display: none;
+    display: none; 
+    flex-direction: column;
+    align-items: center;
     position: absolute;
     bottom: 45px;
     width: 90px;
@@ -98,4 +110,14 @@ const Alt = styled.div`
     font-size: 13px;
     font-weight: 600;
     color: #ffffff;
+`
+
+const P = styled.p`
+    padding: 1px;
+    border-radius: 2px;
+    color: #696b73;
+    background-color: #cccccc;
+    margin-top: 2px;
+    width: 70px;
+    text-align: center;
 `

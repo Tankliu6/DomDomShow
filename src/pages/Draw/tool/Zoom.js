@@ -5,10 +5,22 @@ import { FaSearchPlus, FaSearchMinus } from "react-icons/fa";
 
 
 function Zoom(props){
-    const { SVGSize, setSVGSize, viewBoxOrigin, setViewBoxOrigin } = props;
+    const {
+        SVGSize,
+        setSVGSize, 
+        viewBoxOrigin, 
+        setViewBoxOrigin } = props;
     const zoomPercent = Math.floor((960 / SVGSize.width) * 100);
     const zoomOutRef = useRef();
     const zoomInRef = useRef();
+    const zoomPercentRef = useRef();
+
+    // zoom-in and zoom-out 停止瀏覽器的預設放大縮小
+    document.addEventListener('wheel', function(event) {
+        if ((event.ctrlKey === true || event.metaKey === true) && (event.deltaY > 0 || event.deltaY < 0)) {
+          event.preventDefault();
+        }
+      }, {passive: false});
 
     function handleSVGCoordination(props){
         let [ x, y, width, height, newWidth, newHeight, offsetX, offsetY ] = props;
@@ -27,31 +39,37 @@ function Zoom(props){
         let offsetX = (width - newWidth) * 0.5;
         let offsetY = (height - newHeight) * 0.5;
         const percentValue = (960 / newWidth).toFixed(2);
-        console.log((960 / newWidth).toFixed(2))
-        if (percentValue < 0.49){
-            console.log(1)
-            newWidth = 1920;
-            newHeight = 1080;
+        if (percentValue <= 0.24) {
+            newWidth = 3840;
+            newHeight = 2160;
+            handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
+        } else if ( 0.25 <= percentValue && percentValue <= 0.49){
+            newWidth = 3840;
+            newHeight = 2160;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 0.5 < percentValue && percentValue <= 0.74){
-            console.log(2)
             newWidth = 1920;
             newHeight = 1080;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 0.75 <= percentValue && percentValue <= 0.99){
-            console.log(3)
             newWidth = 1280;
             newHeight = 720;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 1 <= percentValue && percentValue <= 1.49){
-            console.log(4)
             newWidth = 960;
             newHeight = 540;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 1.5 <= percentValue && percentValue <= 2){
-            console.log(5)
             newWidth = 640;
             newHeight = 360;
+            handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
+        } else if ( 2.01 <= percentValue && percentValue <= 2.49 ){
+            newWidth = 480;
+            newHeight = 270;
+            handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
+        } else if ( 2.5 <= percentValue ){
+            newWidth = 384;
+            newHeight = 216;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         }
     }
@@ -65,35 +83,33 @@ function Zoom(props){
         let offsetX = (width - newWidth) * 0.5;
         let offsetY = (height - newHeight) * 0.5;
         const percentValue = (960 / newWidth).toFixed(2);
-        console.log(percentValue)
         if (percentValue < 0.49){
-            console.log(1)
             newWidth = 1920;
             newHeight = 1080;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 0.5 < percentValue && percentValue <= 0.74){
-            console.log(2)
             newWidth = 1280;
             newHeight = 720;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 0.75 <= percentValue && percentValue <= 0.99){
-            console.log(3)
             newWidth = 960;
             newHeight = 540;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 1 <= percentValue && percentValue <= 1.49){
-            console.log(4)
             newWidth = 640;
             newHeight = 360;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         } else if ( 1.5 <= percentValue && percentValue <= 2){
-            console.log(5)
             newWidth = 480;
             newHeight = 270;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
-        } else if (percentValue > 2.01){
-            newWidth = 480;
-            newHeight = 270;
+        } else if ( 2.01 <= percentValue && percentValue <= 2.49){
+            newWidth = 384;
+            newHeight = 216;
+            handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
+        } else if ( 2.5 <= percentValue){
+            newWidth = 320;
+            newHeight = 180;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
         }
     }
@@ -114,14 +130,27 @@ function Zoom(props){
         }
     }
 
+    function handleZoomPercentAlt() {
+        if (zoomPercentRef.current.style.display != "flex"){
+            zoomPercentRef.current.style.display = "flex"
+        } else {
+            zoomPercentRef.current.style.display = "none"
+        }
+    }
+
     return (
         <Wrapper>
             <ZoomOut onPointerOver={handleZoomOutAlt} onPointerOut={handleZoomOutAlt} onClick={handleZoomOut}>
                 <FaSearchMinus />
                 <ZoomOutAlt ref={zoomOutRef}>Zoom out</ZoomOutAlt>
             </ZoomOut>
-            <Percent>
+            <Percent onPointerOver={handleZoomPercentAlt} onPointerOut={handleZoomPercentAlt}>
                 {zoomPercent + "%"}
+                <PercentAlt ref={zoomPercentRef}>
+                    Zoom 
+                    <P>Ctrl</P> 
+                    <P>Scroll</P>
+                </PercentAlt>
             </Percent>
             <ZoomIn onPointerOver={handleZoomInAlt} onPointerOut={handleZoomInAlt} onClick={handleZoomIn}>
                 <FaSearchPlus />
@@ -195,7 +224,17 @@ const ZoomOutAlt = styled.div`
 const ZoomInAlt = styled(ZoomOutAlt)`
 `
 
-const ZoomOutIcon = styled(FaSearchMinus)`
-    size: 36;
-    padding: 20;
+const PercentAlt = styled(ZoomOutAlt)`
+    /* display: flex; */
+    justify-content: center;
+    align-items: center;
+    width: 148px;
+    gap: 10px;
+`
+
+const P = styled.p`
+    padding: 1px;
+    border-radius: 2px;
+    color: #696b73;
+    background-color: #cccccc;
 `

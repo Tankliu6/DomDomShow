@@ -40,6 +40,40 @@ function SvgCanvas() {
     const [selectedLines, setSelectedLines] = useState([]);
     const [selectedLines2, setSelectedLines2] = useState([]);
     const [transformIsDragging, setTransformIsDragging] = useState(false);
+    const [lineIsOverlapping, setLineIsOverLapping] = useState(false);
+
+    // ctrl + 滾輪的 zoom-in and zoom-out
+    const handleWheel = (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            const { x, y } = viewBoxOrigin;
+            const { width, height } = SVGSize;
+            const delta = e.deltaY > 0 ? 1.1 : 1/1.1;
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            let newWidth = width * delta; // zoom 最大 200% 最小 50%
+            let newHeight = height * delta;
+            let offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+            let offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+            if ((960 / newWidth).toFixed(2) < 0.24){
+                newWidth = 3840;
+                newHeight = 2160;
+                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+            } else if ((960 / newWidth).toFixed(2) > 3){
+                newWidth = 320;
+                newHeight = 180;
+                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+            } else {
+                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+            }
+        }
+    }  
 
     function handleAddCircle(e) {
         e.stopPropagation();
@@ -152,47 +186,7 @@ function SvgCanvas() {
         setCircleMoving(false);
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
     }
-
-    // zoom-in and zoom-out
-    function handleWheel(event) {
-        if (event.ctrlKey || event.metaKey) {
-            const { x, y } = viewBoxOrigin;
-            const { width, height } = SVGSize;
-            const delta = event.deltaY > 0 ? 1.1 : 1/1.1;
-            const mouseX = event.clientX;
-            const mouseY = event.clientY;
-            let newWidth = width * delta; // zoom 最大 200% 最小 50%
-            let newHeight = height * delta;
-            let offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
-            let offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-            if ((960 / newWidth).toFixed(2) < 0.49){
-                newWidth = 1920;
-                newHeight = 1080;
-                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
-                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
-                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
-            } else if ((960 / newWidth).toFixed(2) > 2.01){
-                newWidth = 480;
-                newHeight = 270;
-                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
-                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
-                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
-            } else {
-                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
-                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
-            }
-        }
-    }      
-
-    // zoom-in and zoom-out 
-    document.addEventListener('wheel', function(event) {
-        if ((event.ctrlKey === true || event.metaKey === true) && (event.deltaY > 0 || event.deltaY < 0)) {
-          event.preventDefault();
-        }
-      }, {passive: false});
-    
+ 
     // // 刪除節點與由此節點出發的線段
     function handleRemoveNode(e){
         if (e.code === "Delete" && selectedCircle.id !== "default") {
@@ -393,7 +387,7 @@ function SvgCanvas() {
         e.stopPropagation();
         // 節點左半邊
         if (transformIsDragging && leftRightRef.current) {
-            // console.log(lineAtNorthRef, lineAtEastRef, lineAtSouthRef, lineAtWestRef,lineAtNorthRef2, lineAtEastRef2, lineAtSouthRef2, lineAtWestRef2)
+            console.log(lineAtNorthRef, lineAtEastRef, lineAtSouthRef, lineAtWestRef,lineAtNorthRef2, lineAtEastRef2, lineAtSouthRef2, lineAtWestRef2)
             // console.log(selectedLines, selectedLines2)
             let delta = {
                 dx: "",
@@ -553,7 +547,7 @@ function SvgCanvas() {
             handleSVGCoordinateTransfer({e, delta});
             focusingLine.x1 -= delta.dx;
             focusingLine.y1 -= delta.dy;
-            // handleLineChangeNode()
+            handleLineChangeNode();
             setLines([...lines]);   
         } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "endNode") {
             let delta={
@@ -571,9 +565,29 @@ function SvgCanvas() {
         bezierCurvePointIsDraggingRef.current = false;
     }
 
-    // function handleLineChangeNode(){
-    //     const nearestCircle = circles.find(circle => )
-    // }
+    function handleLineChangeNode(){
+        circles.forEach((circle) => {
+            const lineToCircleBoundaryDistance = (( focusingLine.x1 - circle.cx )** 2 + ( focusingLine.y1 - circle.cy )** 2 ) ** (1/2);
+            if (lineToCircleBoundaryDistance < circle.r + 5) {
+                console.log(circle.id)
+                focusingLine.startNodeId = circle.id;
+                setLineIsOverLapping(circle.id);
+                // return
+            } else {
+                setLineIsOverLapping(false);
+            }
+            // } else if (lineToCircleBoundaryDistance < circle.r + 5) {
+            //     focusingLine.startNodeId = circle.id;
+            //     return
+            // } else if (lineToCircleBoundaryDistance < circle.r + 8) {
+            //     focusingLine.startNodeId = circle.id;
+            //     return
+            // }  else if (lineToCircleBoundaryDistance < circle.r + 8) {
+            //     focusingLine.startNodeId = circle.id;
+            //     return
+            // }
+        })
+    }
 
     // function handleLineChangeNodeDown(e){
     //     e.stopPropagation();
@@ -651,6 +665,14 @@ function SvgCanvas() {
                                     ? "#e7e7e7"
                                     : "#ffffff"
                             }
+                            stroke={
+                                lineIsOverlapping === circle.id
+                                    ? "#a600ff"
+                                    : "#ffffff"
+                            }
+                            strokeWidth={
+                                2
+                            }
                             onPointerDown={(e) => handleCircleMouseDown(e)}
                             onPointerOver={() => console.log(123)}
                         />
@@ -666,13 +688,6 @@ function SvgCanvas() {
                                 目前無法打字
                             </ItemsText>
                         </ForeignObject>
-                        {/* <PointToDetect 
-                            id={circle.id} 
-                            cx={circle.cx} 
-                            cy={circle.cy - circle.r} 
-                            r={10}
-                            onPointerUp={() => console.log("upupup")} 
-                        /> */}
                     </GroupWrapper>
                 ))}
                 <GroupWrapper display={ selectedCircle.id !== "default" ? "block" : "none" }>
@@ -842,7 +857,8 @@ function SvgCanvas() {
                 handleSvgCanvasMove={handleSvgCanvasMove}
                 handleSvgCanvasMouseUp={handleSvgCanvasMouseUp}
             />
-            <Zoom 
+            <Zoom
+                svgRef={svgRef} 
                 SVGSize={SVGSize} 
                 setSVGSize={setSVGSize} 
                 viewBoxOrigin={viewBoxOrigin} 

@@ -17,7 +17,7 @@ const App = () => {
     const [showLayer, setShowLayer] = useState("none");
     const navigate = useNavigate();
     const location = useLocation();
-
+    console.log("check")
     useEffect(() => {
         onAuthStateChanged(auth, (authUser) => {
             console.log("AuthChange");
