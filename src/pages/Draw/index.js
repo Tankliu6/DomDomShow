@@ -209,8 +209,6 @@ function SvgCanvas() {
     // 創建新的線段節點
     function handleAddNode(e){
         e.stopPropagation();
-        // console.log(selectedCircle)
-        // console.log("Add Node")
         
         function handleAddEndPointCircle(props){
             const {id, x2, y2} = props;
@@ -251,7 +249,6 @@ function SvgCanvas() {
 
         if (svgX > selectedCircle.cx + selectedCircle.r) {
             // 右邊
-            console.log(1)
             newLine.x1 = selectedCircle.cx + selectedCircle.r;
             // newLine.y1 = selectedCircle.cy;
             newLine.cpx1 = selectedCircle.cx + selectedCircle.r + 50; // 線段 1/4
@@ -265,7 +262,6 @@ function SvgCanvas() {
             })  
         } else if (svgX < selectedCircle.cx - selectedCircle.r) {
             // 左邊
-            console.log(2)
             newLine.x1 = selectedCircle.cx - selectedCircle.r;
             newLine.cpx1 = selectedCircle.cx - selectedCircle.r - 50;
             newLine.cpx2 = selectedCircle.cx - selectedCircle.r - 150;
@@ -279,7 +275,6 @@ function SvgCanvas() {
             }) 
         } else if (svgY > selectedCircle.cy + selectedCircle.r) {
             // 下
-            console.log(3)
             // newLine.x1 = selectedCircle.cx;
             newLine.y1 = selectedCircle.cy + selectedCircle.r;
             newLine.cpy1 = selectedCircle.cy + selectedCircle.r + 50;
@@ -293,7 +288,6 @@ function SvgCanvas() {
             }) 
         } else if (svgY < selectedCircle.cy - selectedCircle.r) {
             // 上
-            console.log(4)
             // newLine.x1 = selectedCircle.cx;
             newLine.y1 = selectedCircle.cy - selectedCircle.r;
             newLine.cpy1 = selectedCircle.cy - selectedCircle.r - 50;
@@ -320,36 +314,41 @@ function SvgCanvas() {
             leftRightRef.current = false;
         }
 
+        // 圓形右下判斷點
+        const atCircleLowerRight = {x: selectedCircle.cx + selectedCircle.r * Math.cos(45 * (Math.PI/180)), y: selectedCircle.cy + selectedCircle.r * Math.sin(45 * (Math.PI/180))};
+        // 圓形左下判斷點
+        const atCircleLowerLeft = {x: selectedCircle.cx + selectedCircle.r * Math.cos(135 * (Math.PI/180)), y: selectedCircle.cy + selectedCircle.r * Math.sin(135 * (Math.PI/180))};
+        // 圓形左上判斷點
+        const atCircleUpperLeft = {x: selectedCircle.cx + selectedCircle.r * Math.cos(225 * (Math.PI/180)), y: selectedCircle.cy + selectedCircle.r * Math.sin(225 * (Math.PI/180))};
+        // 圓形右上判斷點
+        const atCircleUpperRight = {x: selectedCircle.cx + selectedCircle.r * Math.cos(315 * (Math.PI/180)), y: selectedCircle.cy + selectedCircle.r * Math.sin(315 * (Math.PI/180))};
+
         // 上
-        const lineStartAtNorth = lines.filter((line) => line.startNodeId === CircleId && line.y1 < selectedCircle.cy);
-        // console.log(lineStartAtNorth);
+        const lineStartAtNorth = lines.filter((line) => line.startNodeId === CircleId && line.y1 <= atCircleUpperLeft.y && line.x1 >= atCircleUpperLeft.x && line.x1 <= atCircleUpperRight.x);
         lineStartAtNorthRef.current = [...lineStartAtNorth];
 
-        const lineEndAtNorth = lines.filter((line) => line.endNodeId === CircleId && line.y2 < selectedCircle.cy);
+        const lineEndAtNorth = lines.filter((line) => line.endNodeId === CircleId && line.y2 <= atCircleUpperLeft.y && line.x2 >= atCircleUpperLeft.x && line.x2 <= atCircleUpperRight.x);
         lineEndAtNorthRef.current = [...lineEndAtNorth]
 
         // 右
-        const lineStartAtEast = lines.filter((line) => line.startNodeId === CircleId && line.x1 > selectedCircle.cx);
-        // console.log(lineStartAtEast);
+        const lineStartAtEast = lines.filter((line) => line.startNodeId === CircleId && line.x1 >= atCircleUpperRight.x && line.y1 >= atCircleUpperRight.y && line.y1 <= atCircleLowerRight.y);
         lineStartAtEastRef.current = [...lineStartAtEast];
 
-        const lineEndAtEast = lines.filter((line) => line.endNodeId === CircleId && line.x2 > selectedCircle.cx);
+        const lineEndAtEast = lines.filter((line) => line.endNodeId === CircleId && line.x2 >= atCircleUpperRight.x && line.y2 >= atCircleUpperRight.y && line.y2 <= atCircleLowerRight.y);
         lineEndAtEastRef.current = [...lineEndAtEast]
 
         // 下
-        const lineStartAtSouth = lines.filter((line) => line.startNodeId === CircleId && line.y1 > selectedCircle.cy);
-        // console.log(lineStartAtSouth);
+        const lineStartAtSouth = lines.filter((line) => line.startNodeId === CircleId && line.y1 >= atCircleLowerLeft.y && line.x1 >= atCircleLowerLeft.x && line.x1 <= atCircleLowerRight.x);
         lineStartAtSouthRef.current = [...lineStartAtSouth];
 
-        const lineEndAtSouth = lines.filter((line) => line.endNodeId === CircleId && line.y2 > selectedCircle.cy);
+        const lineEndAtSouth = lines.filter((line) => line.endNodeId === CircleId && line.y2 >= atCircleLowerLeft.y && line.x2 >= atCircleLowerLeft.x && line.x2 <= atCircleLowerRight.x);
         lineEndAtSouthRef.current = [...lineEndAtSouth];
 
         // 左
-        const lineStartAtWest = lines.filter((line) => line.startNodeId === CircleId && line.x1 < selectedCircle.cx);
-        // console.log(lineStartAtWest);
+        const lineStartAtWest = lines.filter((line) => line.startNodeId === CircleId && line.x1 <= atCircleUpperLeft.x && line.y1 >= atCircleUpperLeft.y && line.y1 <= atCircleLowerLeft.y);
         lineStartAtWestRef.current = [...lineStartAtWest];
 
-        const lineEndAtWest = lines.filter((line) => line.endNodeId === CircleId && line.x2 < selectedCircle.cx);
+        const lineEndAtWest = lines.filter((line) => line.endNodeId === CircleId && line.x2 <= atCircleLowerLeft.x && line.y2 >= atCircleUpperLeft.y && line.y2 <= atCircleLowerLeft.y);
         lineEndAtWestRef.current = [...lineEndAtWest]
     }
 
@@ -395,8 +394,8 @@ function SvgCanvas() {
             }
             handleSVGCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
-            if (selectedCircle.r < 20) {
-                    selectedCircle.r = 21;
+            if (selectedCircle.r < 39) {
+                    selectedCircle.r = 40;
                 } else {
                     selectedCircle.r += delta.dx;
                 }
@@ -448,8 +447,8 @@ function SvgCanvas() {
             }
             handleSVGCoordinateTransfer({e, delta});
             //  6. 設定新的節點大小
-            if (selectedCircle.r < 20) {
-                    selectedCircle.r = 21;
+            if (selectedCircle.r < 39) {
+                    selectedCircle.r = 40;
                 } else {
                     selectedCircle.r -= delta.dx;
                 }
@@ -583,10 +582,10 @@ function SvgCanvas() {
     
         const foundCircle = circles.some((circle) => {
             const lineToCircleBoundaryDistance = (( lineX - circle.cx )** 2 + ( lineY - circle.cy )** 2 ) ** (1/2);
-            if (lineToCircleBoundaryDistance < circle.r + 10) {
+            if (lineToCircleBoundaryDistance < circle.r) {
                 console.table(`change ${nodeId}`, circle.id);
                 focusingLine[nodeId] = circle.id;
-                setLineIsOverLapping(circle.id)
+                setLineIsOverLapping(circle.id)       
                 return true;
             } else {
                 focusingLine[nodeId] = "";
@@ -600,6 +599,70 @@ function SvgCanvas() {
         }
     }
     
+    function handleLineChangeNodeUp(e){
+        const isStartNode = e.target.id;
+        let lineX;
+        let lineY;
+        let selectedCircle;
+
+        if (isStartNode === "startNode") {
+            lineX = focusingLine.x1;
+            lineY = focusingLine.y1;
+            selectedCircle = circles.find(circle => 
+                circle.id === focusingLine.startNodeId
+            );
+        } else {
+            // isEndNode
+            lineX = focusingLine.x2;
+            lineY = focusingLine.y2;
+            selectedCircle = circles.find(circle => 
+                circle.id === focusingLine.endNodeId
+            );
+        };
+
+        if (!selectedCircle) {
+            return
+        };
+
+        const distances = [
+            {position: "top", distance: ((lineX - selectedCircle.cx)**2 + (lineY- (selectedCircle.cy - selectedCircle.r))**2) ** (1/2)},
+            {position: "right", distance: ((lineX - (selectedCircle.cx + selectedCircle.r))**2 + (lineY- selectedCircle.cy)**2) ** (1/2)},
+            {position: "bottom", distance: ((lineX - selectedCircle.cx)**2 + (lineY- (selectedCircle.cy + selectedCircle.r))**2) ** (1/2)},
+            {position: "left", distance: ((lineX - (selectedCircle.cx - selectedCircle.r))**2 + (lineY- selectedCircle.cy)**2) ** (1/2)}
+        ]
+
+        const minDistancePosition = distances.reduce((prev, curr) => {
+            return (prev.distance < curr.distance) ? prev : curr;
+        });
+
+        
+
+        if (isStartNode === "startNode" && minDistancePosition.position === "top") {
+            focusingLine.x1 = selectedCircle.cx;
+            focusingLine.y1 = selectedCircle.cy - selectedCircle.r;
+        } else if (isStartNode === "startNode" && minDistancePosition.position === "right") {
+            focusingLine.x1 = selectedCircle.cx + selectedCircle.r;
+            focusingLine.y1 = selectedCircle.cy;
+        } else if (isStartNode === "startNode" && minDistancePosition.position === "bottom") {
+            focusingLine.x1 = selectedCircle.cx;
+            focusingLine.y1 = selectedCircle.cy + selectedCircle.r;
+        } else if (isStartNode === "startNode" && minDistancePosition.position === "left") {
+            focusingLine.x1 = selectedCircle.cx - selectedCircle.r;
+            focusingLine.y1 = selectedCircle.cy;
+        } else if (isStartNode !== "startNode" && minDistancePosition.position === "top") {
+            focusingLine.x2 = selectedCircle.cx;
+            focusingLine.y2 = selectedCircle.cy - selectedCircle.r;
+        } else if (isStartNode !== "startNode" && minDistancePosition.position === "right") {
+            focusingLine.x2 = selectedCircle.cx + selectedCircle.r;
+            focusingLine.y2 = selectedCircle.cy;
+        } else if (isStartNode !== "startNode" && minDistancePosition.position === "bottom") {
+            focusingLine.x2 = selectedCircle.cx;
+            focusingLine.y2 = selectedCircle.cy + selectedCircle.r;
+        } else if (isStartNode !== "startNode" && minDistancePosition.position === "left") {
+            focusingLine.x2 = selectedCircle.cx - selectedCircle.r;
+            focusingLine.y2 = selectedCircle.cy;
+        }
+    }
 
     // function handleLineChangeStartNodeUp(){
     //     if (focusingLine.startNodeId === focusingLine.startNodeId || focusingLine.endNodeId === focusingLine.endNodeId)
@@ -842,7 +905,8 @@ function SvgCanvas() {
                         id={"startNode"} 
                         cx={focusingLine.x1} 
                         cy={focusingLine.y1}
-                        onPointerDown={(e) => handleLineBezierCurveDown(e)} 
+                        onPointerDown={(e) => handleLineBezierCurveDown(e)}
+                        onPointerUp={handleLineChangeNodeUp} 
                     />
                     <CircleToBezier 
                         id={"BezierP1"} 
@@ -860,7 +924,8 @@ function SvgCanvas() {
                         id={"endNode"} 
                         cx={focusingLine.x2} 
                         cy={focusingLine.y2}
-                        onPointerDown={(e) => handleLineBezierCurveDown(e)}  
+                        onPointerDown={(e) => handleLineBezierCurveDown(e)}
+                        onPointerUp={handleLineChangeNodeUp}  
                     />
                 </GroupWrapper>
                 <Marker />
