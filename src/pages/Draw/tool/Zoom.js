@@ -87,7 +87,7 @@ function Zoom(props){
             newWidth = 1920;
             newHeight = 1080;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  
-        } else if ( 0.5 < percentValue && percentValue <= 0.74){
+        } else if ( 0.5 <= percentValue && percentValue <= 0.74){
             newWidth = 1280;
             newHeight = 720;
             handleSVGCoordination([x, y, width, height, newWidth, newHeight, offsetX, offsetY])  

@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { v4 as uuid } from "uuid";
 import styled from "styled-components";
-import media from "../../global/constant/media";
 import PanMode from "./tool/PanMode";
 import Zoom from "./tool/Zoom";
+import Marker from "./svg/Marker";
 import { 
     TbArrowBigUpLine, 
     TbArrowBigRightLine,
@@ -18,14 +18,14 @@ function SvgCanvas() {
     const circleRef = useRef(null);
     const deleteRef = useRef();
     const leftRightRef = useRef(null);
-    const lineAtNorthRef = useRef([]);
-    const lineAtNorthRef2 = useRef([]);
-    const lineAtEastRef = useRef([]);
-    const lineAtEastRef2 = useRef([]);
-    const lineAtSouthRef = useRef([]);
-    const lineAtSouthRef2 = useRef([]);
-    const lineAtWestRef = useRef([]);
-    const lineAtWestRef2 = useRef([]);
+    const lineStartAtNorthRef = useRef([]);
+    const lineEndAtNorthRef = useRef([]);
+    const lineStartAtEastRef = useRef([]);
+    const lineEndAtEastRef = useRef([]);
+    const lineStartAtSouthRef = useRef([]);
+    const lineEndAtSouthRef = useRef([]);
+    const lineStartAtWestRef = useRef([]);
+    const lineEndAtWestRef = useRef([]);
     const [foreignObjectPointerEventMode, setForeignObjectPointerEventMode] = useState(false);
     const [circles, setCircles] = useState([]);
     const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0});
@@ -312,7 +312,7 @@ function SvgCanvas() {
     function handleTransformDown(e){
         e.stopPropagation();
         setTransformIsDragging(true);
-        const id = selectedCircle.id;
+        const CircleId = selectedCircle.id;
         // left = true
         if (e.target.classList.contains("upperLeft") || e.target.classList.contains("lowerLeft")) {
             leftRightRef.current = true;
@@ -321,36 +321,36 @@ function SvgCanvas() {
         }
 
         // 上
-        const lineAtNorth = lines.filter((line) => line.startNodeId === id && line.y1 < selectedCircle.cy);
-        // console.log(lineAtNorth);
-        lineAtNorthRef.current = [...lineAtNorth];
+        const lineStartAtNorth = lines.filter((line) => line.startNodeId === CircleId && line.y1 < selectedCircle.cy);
+        // console.log(lineStartAtNorth);
+        lineStartAtNorthRef.current = [...lineStartAtNorth];
 
-        const lineAtNorth2 = lines.filter((line) => line.endNodeId === id && line.y2 < selectedCircle.cy);
-        lineAtNorthRef2.current = [...lineAtNorth2]
+        const lineEndAtNorth = lines.filter((line) => line.endNodeId === CircleId && line.y2 < selectedCircle.cy);
+        lineEndAtNorthRef.current = [...lineEndAtNorth]
 
         // 右
-        const lineAtEast = lines.filter((line) => line.startNodeId === id && line.x1 > selectedCircle.cx);
-        // console.log(lineAtEast);
-        lineAtEastRef.current = [...lineAtEast];
+        const lineStartAtEast = lines.filter((line) => line.startNodeId === CircleId && line.x1 > selectedCircle.cx);
+        // console.log(lineStartAtEast);
+        lineStartAtEastRef.current = [...lineStartAtEast];
 
-        const lineAtEast2 = lines.filter((line) => line.endNodeId === id && line.x2 > selectedCircle.cx);
-        lineAtEastRef2.current = [...lineAtEast2]
+        const lineEndAtEast = lines.filter((line) => line.endNodeId === CircleId && line.x2 > selectedCircle.cx);
+        lineEndAtEastRef.current = [...lineEndAtEast]
 
         // 下
-        const lineAtSouth = lines.filter((line) => line.startNodeId === id && line.y1 > selectedCircle.cy);
-        // console.log(lineAtSouth);
-        lineAtSouthRef.current = [...lineAtSouth];
+        const lineStartAtSouth = lines.filter((line) => line.startNodeId === CircleId && line.y1 > selectedCircle.cy);
+        // console.log(lineStartAtSouth);
+        lineStartAtSouthRef.current = [...lineStartAtSouth];
 
-        const lineAtSouth2 = lines.filter((line) => line.endNodeId === id && line.y2 > selectedCircle.cy);
-        lineAtSouthRef2.current = [...lineAtSouth2];
+        const lineEndAtSouth = lines.filter((line) => line.endNodeId === CircleId && line.y2 > selectedCircle.cy);
+        lineEndAtSouthRef.current = [...lineEndAtSouth];
 
         // 左
-        const lineAtWest = lines.filter((line) => line.startNodeId === id && line.x1 < selectedCircle.cx);
-        // console.log(lineAtWest);
-        lineAtWestRef.current = [...lineAtWest];
+        const lineStartAtWest = lines.filter((line) => line.startNodeId === CircleId && line.x1 < selectedCircle.cx);
+        // console.log(lineStartAtWest);
+        lineStartAtWestRef.current = [...lineStartAtWest];
 
-        const lineAtWest2 = lines.filter((line) => line.endNodeId === id && line.x2 < selectedCircle.cx);
-        lineAtWestRef2.current = [...lineAtWest2]
+        const lineEndAtWest = lines.filter((line) => line.endNodeId === CircleId && line.x2 < selectedCircle.cx);
+        lineEndAtWestRef.current = [...lineEndAtWest]
     }
 
     function handleNodeLineStraight(line, delta){
@@ -387,7 +387,7 @@ function SvgCanvas() {
         e.stopPropagation();
         // 節點左半邊
         if (transformIsDragging && leftRightRef.current) {
-            console.log(lineAtNorthRef, lineAtEastRef, lineAtSouthRef, lineAtWestRef,lineAtNorthRef2, lineAtEastRef2, lineAtSouthRef2, lineAtWestRef2)
+            console.log(lineStartAtNorthRef, lineStartAtEastRef, lineStartAtSouthRef, lineStartAtWestRef,lineEndAtNorthRef, lineEndAtEastRef, lineEndAtSouthRef, lineEndAtWestRef)
             // console.log(selectedLines, selectedLines2)
             let delta = {
                 dx: "",
@@ -403,38 +403,38 @@ function SvgCanvas() {
             setCircles([...circles])     
             // 設定該節點的線段同步移動
             // 上
-            lineAtNorthRef.current.forEach(line => {
+            lineStartAtNorthRef.current.forEach(line => {
                 console.log("N1")
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })
-            lineAtNorthRef2.current.forEach(line => {
+            lineEndAtNorthRef.current.forEach(line => {
                 console.log("N1-2")
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })    
             // 右
-            lineAtEastRef.current.forEach(line => {
+            lineStartAtEastRef.current.forEach(line => {
                 console.log("E1")
                 line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;                   
             })
-            lineAtEastRef2.current.forEach(line => {
+            lineEndAtEastRef.current.forEach(line => {
                 console.log("E1-2")
                 line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;                   
             })
             // 下
-            lineAtSouthRef.current.forEach(line => {
+            lineStartAtSouthRef.current.forEach(line => {
                 console.log("S1")
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
-            lineAtSouthRef2.current.forEach(line => {
+            lineEndAtSouthRef.current.forEach(line => {
                 console.log("S1-2")
                 line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;  
             })
             // 左
-            lineAtWestRef.current.forEach(line => {
+            lineStartAtWestRef.current.forEach(line => {
                 console.log("W1")
                 line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;  
             })
-            lineAtWestRef2.current.forEach(line => {
+            lineEndAtWestRef.current.forEach(line => {
                 console.log("W1-2")
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;   
             })
@@ -442,8 +442,6 @@ function SvgCanvas() {
 
         // 節點右半邊
         } else if (transformIsDragging && !leftRightRef.current) {
-            // console.log(lineAtNorthRef, lineAtEastRef, lineAtSouthRef, lineAtWestRef)
-            // console.log(selectedLines,selectedLines2)
             let delta = {
                 dx: "",
                 dy: ""
@@ -457,38 +455,38 @@ function SvgCanvas() {
                 }
             setCircles([...circles])
             // 上
-            lineAtNorthRef.current.forEach(line => {
+            lineStartAtNorthRef.current.forEach(line => {
                 console.log("N1")
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })
-            lineAtNorthRef2.current.forEach(line => {
+            lineEndAtNorthRef.current.forEach(line => {
                 console.log("N1-2")
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })    
             // 右
-            lineAtEastRef.current.forEach(line => {
+            lineStartAtEastRef.current.forEach(line => {
                 console.log("E1")
                 line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;                 
             })
-            lineAtEastRef2.current.forEach(line => {
+            lineEndAtEastRef.current.forEach(line => {
                 console.log("E1-2")
                 line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;                 
             })
             // 下
-            lineAtSouthRef.current.forEach(line => {
+            lineStartAtSouthRef.current.forEach(line => {
                 console.log("S1")
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
-            lineAtSouthRef2.current.forEach(line => {
+            lineEndAtSouthRef.current.forEach(line => {
                 console.log("S1-2")
                 line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
             // 左
-            lineAtWestRef.current.forEach(line => {
+            lineStartAtWestRef.current.forEach(line => {
                 console.log("W1")
                 line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;   
             })
-            lineAtWestRef2.current.forEach(line => {
+            lineEndAtWestRef.current.forEach(line => {
                 console.log("W1-2")
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;  
             })            
@@ -547,7 +545,7 @@ function SvgCanvas() {
             handleSVGCoordinateTransfer({e, delta});
             focusingLine.x1 -= delta.dx;
             focusingLine.y1 -= delta.dy;
-            handleLineChangeNode();
+            handleLineChangeNode(true); // true 更改 startNodeId
             setLines([...lines]);   
         } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "endNode") {
             let delta={
@@ -557,37 +555,55 @@ function SvgCanvas() {
             handleSVGCoordinateTransfer({e, delta});
             focusingLine.x2 -= delta.dx;
             focusingLine.y2 -= delta.dy;
+            handleLineChangeNode(false); // false 更改 endNodeId
             setLines([...lines]);
         }
     }
 
     function handleLineBezierCurveUp(){
         bezierCurvePointIsDraggingRef.current = false;
+        // 將被線段鎖定的狀態解除(消除紫色外框)
+        setLineIsOverLapping(null);
     }
 
-    function handleLineChangeNode(){
-        circles.forEach((circle) => {
-            const lineToCircleBoundaryDistance = (( focusingLine.x1 - circle.cx )** 2 + ( focusingLine.y1 - circle.cy )** 2 ) ** (1/2);
-            if (lineToCircleBoundaryDistance < circle.r + 5) {
-                console.log(circle.id)
-                focusingLine.startNodeId = circle.id;
-                setLineIsOverLapping(circle.id);
-                // return
+    function handleLineChangeNode(isStartNode) {
+        let lineX;
+        let lineY;
+        let nodeId;
+    
+        if (isStartNode) {
+            lineX = focusingLine.x1;
+            lineY = focusingLine.y1;
+            nodeId = "startNodeId";
+        } else {
+            lineX = focusingLine.x2;
+            lineY = focusingLine.y2;
+            nodeId = "endNodeId";
+        }
+    
+        const foundCircle = circles.some((circle) => {
+            const lineToCircleBoundaryDistance = (( lineX - circle.cx )** 2 + ( lineY - circle.cy )** 2 ) ** (1/2);
+            if (lineToCircleBoundaryDistance < circle.r + 10) {
+                console.table(`change ${nodeId}`, circle.id);
+                focusingLine[nodeId] = circle.id;
+                setLineIsOverLapping(circle.id)
+                return true;
             } else {
-                setLineIsOverLapping(false);
+                focusingLine[nodeId] = "";
+                setLineIsOverLapping(null);
+                return false;
             }
-            // } else if (lineToCircleBoundaryDistance < circle.r + 5) {
-            //     focusingLine.startNodeId = circle.id;
-            //     return
-            // } else if (lineToCircleBoundaryDistance < circle.r + 8) {
-            //     focusingLine.startNodeId = circle.id;
-            //     return
-            // }  else if (lineToCircleBoundaryDistance < circle.r + 8) {
-            //     focusingLine.startNodeId = circle.id;
-            //     return
-            // }
-        })
+        });
+    
+        if (!foundCircle) {
+            focusingLine[nodeId] = "";
+        }
     }
+    
+
+    // function handleLineChangeStartNodeUp(){
+    //     if (focusingLine.startNodeId === focusingLine.startNodeId || focusingLine.endNodeId === focusingLine.endNodeId)
+    // }
 
     // function handleLineChangeNodeDown(e){
     //     e.stopPropagation();
@@ -607,7 +623,7 @@ function SvgCanvas() {
     // }
     // console.log(svgPanMode)
     return (
-        <Main>
+        <Main>           
             <Aside>
                 <button onClick={handleAddCircle}>Add Circle</button>
             </Aside>
@@ -636,11 +652,11 @@ function SvgCanvas() {
                     handleTransformUp(e);
                     handleLineBezierCurveUp();
                 }}
-            >
+            >                 
                 {lines.map((line) => (
                     <GroupWrapper
                         key={line.id}
-                    >
+                    >                       
                         <PathSvg
                             id={line.id}
                             d={`M ${line.x1} ${line.y1} C ${line.cpx1} ${line.cpy1}, ${line.cpx2} ${line.cpy2}, ${line.x2} ${line.y2}`}
@@ -648,6 +664,8 @@ function SvgCanvas() {
                             strokeWidth="4"
                             fill="transparent"
                             onPointerDown={handleLineDown}
+                            markerStart={`url(#startNodeCircle)`}
+                            markerEnd={`url(#endNodeArrow)`}
                         >
                         </PathSvg>
                     </GroupWrapper>
@@ -666,7 +684,7 @@ function SvgCanvas() {
                                     : "#ffffff"
                             }
                             stroke={
-                                lineIsOverlapping === circle.id
+                                circle.id === lineIsOverlapping
                                     ? "#a600ff"
                                     : "#ffffff"
                             }
@@ -674,7 +692,6 @@ function SvgCanvas() {
                                 2
                             }
                             onPointerDown={(e) => handleCircleMouseDown(e)}
-                            onPointerOver={() => console.log(123)}
                         />
                         <ForeignObject
                             // style={{pointerEvents: "none"}} // 讓下方圓形可以被點擊
@@ -846,6 +863,7 @@ function SvgCanvas() {
                         onPointerDown={(e) => handleLineBezierCurveDown(e)}  
                     />
                 </GroupWrapper>
+                <Marker />
             </Svg>
             <PanMode 
                 svgRef={svgRef}

@@ -50,13 +50,20 @@ function PanMode(props) {
         }
     }
 
+    // 加入 Space 手勢快速切換 SVG 畫布拖拉模式
     useEffect(() => {
-        document.addEventListener("keydown", (e) => {
+        function handleSpaceKeydown(e) {
             if (e.code === "Space") {
                 handleSvgPanModeSwitch();
             }
-        })
-    }, [svgPanMode])
+        }
+    
+        document.addEventListener("keydown", handleSpaceKeydown);
+        return () => {
+            document.removeEventListener("keydown", handleSpaceKeydown);
+        };
+    }, [handleSvgPanModeSwitch, svgPanMode]);
+    
 
     return(
         <PanContainer onPointerOver={handleAlt} onPointerOut={handleAlt} onClick={handleSvgPanModeSwitch} theme={theme}>
