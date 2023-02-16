@@ -2,8 +2,9 @@ import React, { useRef, useState, useEffect } from "react";
 import { v4 as uuid } from "uuid";
 import styled from "styled-components";
 import PanMode from "./tool/PanMode";
-import Zoom from "./tool/Zoom";
+import Zoom, { handleWheel } from "./tool/Zoom";
 import Marker from "./svg/Marker";
+import Remove from "./tool/Remove";
 import { 
     TbArrowBigUpLine, 
     TbArrowBigRightLine,
@@ -16,7 +17,6 @@ function SvgCanvas() {
     const svgIsDraggingRef = useRef(false);
     const bezierCurvePointIsDraggingRef = useRef({isDragging: false, point: "default"});
     const circleRef = useRef(null);
-    const deleteRef = useRef();
     const leftRightRef = useRef(null);
     const lineStartAtNorthRef = useRef([]);
     const lineEndAtNorthRef = useRef([]);
@@ -26,11 +26,9 @@ function SvgCanvas() {
     const lineEndAtSouthRef = useRef([]);
     const lineStartAtWestRef = useRef([]);
     const lineEndAtWestRef = useRef([]);
-    const [foreignObjectPointerEventMode, setForeignObjectPointerEventMode] = useState(false);
     const [circles, setCircles] = useState([]);
     const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0});
     const [isDragging, setIsDragging] = useState(false);
-    const [circleMoving, setCircleMoving] = useState(false);
     const [viewBoxOrigin, setViewBoxOrigin] = useState({ x: 0, y: 0 })
     const [SVGSize, setSVGSize] = useState({ width: 960, height: 540 })
     const [svgIsDragging, setSvgIsDragging] = useState(false);
@@ -41,39 +39,8 @@ function SvgCanvas() {
     const [selectedLines2, setSelectedLines2] = useState([]);
     const [transformIsDragging, setTransformIsDragging] = useState(false);
     const [lineIsOverlapping, setLineIsOverLapping] = useState(false);
-
-    // ctrl + 滾輪的 zoom-in and zoom-out
-    const handleWheel = (e) => {
-        if (e.ctrlKey || e.metaKey) {
-            const { x, y } = viewBoxOrigin;
-            const { width, height } = SVGSize;
-            const delta = e.deltaY > 0 ? 1.1 : 1/1.1;
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
-            let newWidth = width * delta; // zoom 最大 200% 最小 50%
-            let newHeight = height * delta;
-            let offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
-            let offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-            if ((960 / newWidth).toFixed(2) < 0.24){
-                newWidth = 3840;
-                newHeight = 2160;
-                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
-                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
-                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
-            } else if ((960 / newWidth).toFixed(2) > 3){
-                newWidth = 320;
-                newHeight = 180;
-                offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
-                offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
-                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
-                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
-            } else {
-                setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
-                setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
-            }
-        }
-    }  
+    const [isTexting, setIsTexting] = useState(false);
+    const [showCirclePackage, setShowCirclePackage] = useState(false);
 
     function handleAddCircle(e) {
         e.stopPropagation();
@@ -84,6 +51,7 @@ function SvgCanvas() {
             cx: width / 2 + x,
             cy: height / 2 + y,
             r: 40,
+            content: "",
         };
         setCircles([...circles, newCircle]);
     }    
@@ -114,29 +82,21 @@ function SvgCanvas() {
     function handleCircleMouseDown(e) {
         e.stopPropagation();
 
-        const targetCircleId = e.target.id; // 立即於此點擊事件中找到被點擊的 id
+        const targetCircleId = e.target.id; // 立即於此點擊事件中找到被點擊的 id, 因為 state 不會立即改變
         setIsDragging(true);
         console.log(targetCircleId, selectedCircle)
 
-        isDragging ? setCircleMoving(true) : null;
+        setShowCirclePackage(false);
 
         const selected = circles.find((c) => c.id === targetCircleId);
         setSelectedCircle(selected);
 
-        const linesBindToSelectedNode = lines.filter((line) => line.startNodeId === targetCircleId);
-        setSelectedLines([...linesBindToSelectedNode]);
+        const linesStartBindToSelectedNode = lines.filter((line) => line.startNodeId === targetCircleId);
+        setSelectedLines([...linesStartBindToSelectedNode]);
 
-        const linesBindToSelectedNode2 = lines.filter((line) => line.endNodeId === targetCircleId);
-        setSelectedLines2([...linesBindToSelectedNode2])
+        const linesEndBindToSelectedNode2 = lines.filter((line) => line.endNodeId === targetCircleId);
+        setSelectedLines2([...linesEndBindToSelectedNode2])
 
-        // 判斷該節點 isDragging === true 時點擊另一節點馬上能拖動的問題
-        if (targetCircleId === selectedCircle.id) {
-            svgRef.current.addEventListener("pointerup", handleCircleMouseUp, {once: true});
-        } else {
-            setCircleMoving(false);
-            setSelectedLines([]);
-            setSelectedLines2([]);
-        }
     }
 
     function handleCircleMouseMove(e){
@@ -150,7 +110,7 @@ function SvgCanvas() {
         handleSVGCoordinateTransfer({ e, delta });
         //  6. 設定新的節點位置  
         if (!selectedCircle) return
-        if (isDragging && circleMoving) {
+        if (isDragging) {
             // 設定新的 circle 於 SVG 的座標
             selectedCircle.cx -= delta.dx
             selectedCircle.cy -= delta.dy 
@@ -174,7 +134,6 @@ function SvgCanvas() {
                 line.cpx2 -= delta.dx;
                 line.cpy2 -= delta.dy;
             })
-
             setLines([...lines])
         }
     }
@@ -182,26 +141,44 @@ function SvgCanvas() {
     function handleCircleMouseUp(e) {
         e.stopPropagation();
         console.log("leave");
+        setShowCirclePackage(true);
         setIsDragging(false);
-        setCircleMoving(false);
-        setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
+        // setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
     }
  
-    // // 刪除節點與由此節點出發的線段
+    // 刪除節點與由此節點出發的線段
     function handleRemoveNode(e){
         if (e.code === "Delete" && selectedCircle.id !== "default") {
-            console.log(selectedCircle, selectedLines, selectedLines2);
-            circles.splice(selectedCircle.id, 1)
-            setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
+            const circleIndex = circles.indexOf(selectedCircle)
+            if (circleIndex > -1) {
+                circles.splice(circleIndex, 1)
+            };
+            const lineIndex = lines.filter(line => {
+                return line.startNodeId === selectedCircle.id
+            });
+            lineIndex.forEach(line => {
+                const lineToDeleteIndex = lines.indexOf(line);
+                if (lineToDeleteIndex > -1) {
+                    lines.splice(lineToDeleteIndex, 1)
+                }
+            });
             setCircles([...circles]);
-
-            const linesNotBindToSelectedNode = lines.filter((line) => line.id != selectedCircle.id);
-            setLines([...linesNotBindToSelectedNode]);
+            setLines([...lines]);       
+            setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0}); // 關閉圓形節點的工具組
+        } else if (e.code === "Delete" && focusingLine) {
+            const lineIndex = lines.indexOf(focusingLine);
+            if (lineIndex > -1) {
+                lines.splice(lineIndex, 1);
+                setLines([...lines]);
+                setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0}); // 關閉曲線調整工具
+            };
         }
     }
 
     // 點擊SVG畫布解除選擇節點
     function resetSvgCanvas(e){
+        setShowCirclePackage(false);
+        setIsTexting(false);
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
         setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0});
     }
@@ -226,7 +203,6 @@ function SvgCanvas() {
         const CTM = svgRef.current.getScreenCTM();
         const svgX = (e.clientX - CTM.e) / CTM.a;
         const svgY = (e.clientY - CTM.f) / CTM.d;
-        // console.log(svgX, svgY)
 
         const newLine = {
             id: uuid(),
@@ -503,6 +479,7 @@ function SvgCanvas() {
         const targetLineId = e.target.id;
         const focusingLine = lines.find(line => line.id === targetLineId);
         setFocusingLine(focusingLine);
+        setShowCirclePackage(false);
         console.log(focusingLine)
     }
 
@@ -515,6 +492,7 @@ function SvgCanvas() {
         e.stopPropagation();
         console.log(focusingLine)
         bezierCurvePointIsDraggingRef.current = { isDragging: true, point: e.target.id };
+        setShowCirclePackage(false);
     }
 
     function handleLineBezierCurveMove(e){
@@ -635,8 +613,6 @@ function SvgCanvas() {
             return (prev.distance < curr.distance) ? prev : curr;
         });
 
-        
-
         if (isStartNode === "startNode" && minDistancePosition.position === "top") {
             focusingLine.x1 = selectedCircle.cx;
             focusingLine.y1 = selectedCircle.cy - selectedCircle.r;
@@ -664,27 +640,13 @@ function SvgCanvas() {
         }
     }
 
-    // function handleLineChangeStartNodeUp(){
-    //     if (focusingLine.startNodeId === focusingLine.startNodeId || focusingLine.endNodeId === focusingLine.endNodeId)
-    // }
+    function handleNodeContent(e){
+        const nodeContent = e.target.innerText;
+        const nodeContentId = e.target.id.split("nodeContent-")[1];
+        const selectedCircle = circles.find(circle => circle.id === nodeContentId);
+        selectedCircle.content = nodeContent;
+    }
 
-    // function handleLineChangeNodeDown(e){
-    //     e.stopPropagation();
-    //     console.log(focusingLine, e.target);
-    //     bezierCurvePointIsDraggingRef.current = { isDragging: true, point: e.target.id };
-    // }
-
-    // function handleLineChangeNodeMove(e){
-
-    // }
-
-    // 將所有點擊動作彙整，待優化
-    // function drag(){
-    //     if (draggingType = SVG_DRAG_TYPE_CANVAS) {
-    //         console.log(draggingType)
-    //     }
-    // }
-    // console.log(svgPanMode)
     return (
         <Main>           
             <Aside>
@@ -698,7 +660,9 @@ function SvgCanvas() {
                 viewBox={`${viewBoxOrigin.x} ${viewBoxOrigin.y} ${SVGSize.width} ${SVGSize.height}`}
                 xmlns="http://www.w3.org/2000/svg"
                 panMode={svgPanMode}
-                onWheel={handleWheel}
+                onWheel={(e) => { 
+                    handleWheel(e, svgRef, viewBoxOrigin, SVGSize, setSVGSize, setViewBoxOrigin)
+                }}
                 onKeyDown={handleRemoveNode}
                 onPointerDown={(e) => {
                     handleSvgCanvasMouseDown();
@@ -712,6 +676,7 @@ function SvgCanvas() {
                 }}
                 onPointerUp={(e) =>{
                     handleSvgCanvasMouseUp(e);
+                    // handleCircleMouseUp(e);
                     handleTransformUp(e);
                     handleLineBezierCurveUp();
                 }}
@@ -754,74 +719,100 @@ function SvgCanvas() {
                             strokeWidth={
                                 2
                             }
+                            cursor={
+                                selectedCircle.id === circle.id ? "move" : "auto"
+                            }
                             onPointerDown={(e) => handleCircleMouseDown(e)}
+                            onPointerUp={(e) => handleCircleMouseUp(e)}
+                            onDoubleClick={() =>{ 
+                                setIsTexting(true);
+                                setShowCirclePackage(false);
+                            }}
                         />
                         <ForeignObject
-                            // style={{pointerEvents: "none"}} // 讓下方圓形可以被點擊
-                            pointerEventMode={foreignObjectPointerEventMode}
-                            x={circle.cx - (circle.r) / 2 } 
-                            y={circle.cy - (circle.r) / 2 }
-                            width={circle.r} 
-                            height={circle.r}
+                            x={ circle.cx + circle.r * Math.cos(225 * (Math.PI/180)) } 
+                            y={ circle.cy + circle.r * Math.cos(225 * (Math.PI/180)) }
+                            width={ Math.abs(circle.cx + circle.r * Math.cos(315 * (Math.PI/180)) - (circle.cx + circle.r * Math.cos(225 * (Math.PI/180)))) } 
+                            height={ Math.abs(circle.cy + circle.r * Math.cos(135 * (Math.PI/180)) - circle.cy + circle.r * Math.cos(225 * (Math.PI/180))) }
+                            pointerEventMode={
+                                isTexting ? "auto" : "none"
+                            }
+                            onPointerDown={(e) => {
+                                e.stopPropagation();
+                            }}                                
                             >
-                            <ItemsText>
-                                目前無法打字
-                            </ItemsText>
+                            <WrapperNodeContent>    
+                                <NodeContent
+                                    id={"nodeContent-" + circle.id}
+                                    title="Happy text"
+                                    contentEditable={true}
+                                    suppressContentEditableWarning={true}
+                                    onInput={handleNodeContent}
+                                    data-placeholder= "Text"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onDoubleClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsTexting(false);
+                                    }}
+                                >
+                                    {circle.content ? circle.content : ""}
+                                </NodeContent>
+                            </WrapperNodeContent>
                         </ForeignObject>
                     </GroupWrapper>
                 ))}
-                <GroupWrapper display={ selectedCircle.id !== "default" ? "block" : "none" }>
+                <GroupWrapper display={ showCirclePackage ? "block" : "none" }>
                     <ForeignObjectNodeTool
-                        x={selectedCircle.cx - 24} 
+                        x={selectedCircle.cx - 17.5} 
                         y={selectedCircle.cy - (selectedCircle.r + 60)}
-                        width={50} 
-                        height={50}
+                        width={35} 
+                        height={35}
                     >
                         <CreateNode 
                             title={"Create New Node Top"}
                             onPointerDown={handleAddNode}
                             // onMouseMove={() => console.log("node")} // 新增浮水印給使用者增加圓形或三角形
                         >
-                            <TbArrowBigUpLine size={50}></TbArrowBigUpLine>
+                            <TbArrowBigUpLine size={35}></TbArrowBigUpLine>
                         </CreateNode>
                     </ForeignObjectNodeTool>
                     <ForeignObjectNodeTool
-                        x={selectedCircle.cx + (selectedCircle.r + 10)} 
-                        y={selectedCircle.cy - 25}
-                        width={50} 
-                        height={50}
+                        x={selectedCircle.cx + (selectedCircle.r + 25)} 
+                        y={selectedCircle.cy - 17.5}
+                        width={35} 
+                        height={35}
                     >
                         <CreateNode 
                             title={"Create New Node Right"}
                             onPointerDown={handleAddNode}
                         >
-                            <TbArrowBigRightLine size={50}></TbArrowBigRightLine>
+                            <TbArrowBigRightLine size={35}></TbArrowBigRightLine>
                         </CreateNode>
                     </ForeignObjectNodeTool>
                     <ForeignObjectNodeTool                      
-                        x={selectedCircle.cx - 24} 
-                        y={selectedCircle.cy + (selectedCircle.r) + 10 }
-                        width={50} 
-                        height={50}
+                        x={selectedCircle.cx - 17.5} 
+                        y={selectedCircle.cy + (selectedCircle.r) + 25 }
+                        width={35} 
+                        height={35}
                     >
                         <CreateNode 
                             title={"Create New Node Down"}
                             onPointerDown={handleAddNode}
                         >
-                            <TbArrowBigDownLine size={50}></TbArrowBigDownLine>
+                            <TbArrowBigDownLine size={35}></TbArrowBigDownLine>
                         </CreateNode>
                     </ForeignObjectNodeTool>
                     <ForeignObjectNodeTool
                         x={selectedCircle.cx - (selectedCircle.r + 60) } 
-                        y={selectedCircle.cy - 24}
-                        width={50} 
-                        height={50}
+                        y={selectedCircle.cy - 17.5}
+                        width={35} 
+                        height={35}
                     >
                         <CreateNode 
                             title={"Create New Node Left"}
                             onPointerDown={handleAddNode}
                         >
-                            <TbArrowBigLeftLine size={50}></TbArrowBigLeftLine>
+                            <TbArrowBigLeftLine size={35}></TbArrowBigLeftLine>
                         </CreateNode>
                     </ForeignObjectNodeTool>
                     {/* 左上控制點 */}
@@ -839,8 +830,6 @@ function SvgCanvas() {
                         strokeLinejoin="round"
                         fill= "#f0f4f7"
                         onPointerDown={handleTransformDown}
-                        // onPointerMove={handleTransformMove}
-                        onPointerUp={handleTransformUp}
                     />
                     {/* 右上控制點 */}
                     <TransformRectNeResize
@@ -857,8 +846,6 @@ function SvgCanvas() {
                         strokeLinejoin="round"
                         fill= "#f0f4f7"
                         onPointerDown={handleTransformDown}
-                        // onPointerMove={handleTransformMove}
-                        onPointerUp={handleTransformUp}
                     />
                     {/* 右下控制點 */}
                     <TransformRectNwResize
@@ -875,8 +862,6 @@ function SvgCanvas() {
                         strokeLinejoin="round"
                         fill= "#f0f4f7"
                         onPointerDown={handleTransformDown}
-                        // onPointerMove={handleTransformMove}
-                        onPointerUp={handleTransformUp}
                     />
                     {/* 左下控制點 */}
                     <TransformRectNeResize
@@ -894,8 +879,6 @@ function SvgCanvas() {
                         strokeLinejoin="round"
                         fill= "#f0f4f7"
                         onPointerDown={handleTransformDown}
-                        // onPointerMove={handleTransformMove}
-                        onPointerUp={handleTransformUp}
                     />                                                
                 </GroupWrapper>
                 <GroupWrapper display={ focusingLine.id !== "default" ? "block" : "none" }>
@@ -947,6 +930,14 @@ function SvgCanvas() {
                 viewBoxOrigin={viewBoxOrigin} 
                 setViewBoxOrigin={setViewBoxOrigin}
             />
+            <Remove 
+                circles={circles}
+                setCircles={setCircles}
+                lines={lines}
+                setLines={setLines}
+                selectedCircle={selectedCircle}
+                setSelectedCircle={setSelectedCircle}
+            />
         </Main>
     )
 }
@@ -963,11 +954,9 @@ const Aside = styled.aside`
     display: flex;
     flex-direction: column;
     padding: 20px;
-    background-color: #ffbb00;
-    /* border: 0.5px solid #000000; */
+    /* background-color: #ffbb00; */
     box-shadow: 0 0 1px #000000;
     width: 212px;
-    /* min-height: calc(100vh - 105px); */
     margin-top: 0.5px;
     button {
         color: #000000;
@@ -1001,7 +990,7 @@ const GroupWrapper = styled.g`
 `
 
 const CircleSvg = styled.circle`
-    cursor: move;
+    cursor: ${props => props.cursor || "auto"};
 `
 const PathSvg = styled.path`
     cursor: pointer;
@@ -1019,32 +1008,50 @@ const TransformRectNwResize = styled.rect`
 `
 
 const ForeignObject = styled.foreignObject`
-    // 使用props 來改變長寬高，來達成彈性打字
-    position: relative;
     pointer-events: ${props => props.pointerEventMode || "none"};
-
 `
 
 const ForeignObjectNodeTool = styled.foreignObject`
 `
 
-const ItemsText = styled.div`
+const WrapperNodeContent = styled.div`
     display: flex;
-    width: 100%;
     height: 100%;
+    justify-content: center;
     align-items: center;
+    text-align: center; 
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: pre-wrap;
+    overflow: auto;
+`
+
+const NodeContent = styled.div`
+    width: 100%;
     color: #000000;
+    font-size: ${props => props.fontSize || "24px"};
+    &::before{
+        content: attr(data-placeholder);
+        color: #cccccc;
+        display: inline-block;
+    }
+    &[contentEditable="true"]:not(:empty)::before {
+        display: none;
+    }
+    &[contentEditable="true"] {
+        outline: 0px
+    }
 `
 
 const CreateNode = styled.button`
     position: absolute;
-    height: 50px;
-    width: 50px;
+    height: 100%;
+    width: 100%;
     background-color: #ffffff;
     border-radius: 5px;
     z-index: 1;
     cursor: pointer;
-    :hover{
+    :hover {
         background-color: #cccccc;
     }
 `
@@ -1068,11 +1075,4 @@ const CircleToBezier = styled(CircleToSetLine)`
 const Line = styled.line`
     stroke: #8f0032;
     stroke-dasharray: 10 5;
-`
-
-const PointToDetect= styled.circle`
-    cursor: crosshair;
-    :hover{
-        fill: #00ff1a7e;
-    }
 `

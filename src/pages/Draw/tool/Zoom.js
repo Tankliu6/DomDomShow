@@ -160,7 +160,43 @@ function Zoom(props){
     )
 }
 
+// ctrl + 滾輪的 zoom-in and zoom-out
+function handleWheel(e, svgRef, viewBoxOrigin, SVGSize, setSVGSize, setViewBoxOrigin) {
+    if (e.ctrlKey || e.metaKey) {
+        const { x, y } = viewBoxOrigin;
+        const { width, height } = SVGSize;
+        const delta = e.deltaY > 0 ? 1.1 : 1/1.1;
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        let newWidth = width * delta; // zoom 最大 200% 最小 50%
+        let newHeight = height * delta;
+        let offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+        let offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+        if ((960 / newWidth).toFixed(2) < 0.24){
+            newWidth = 3840;
+            newHeight = 2160;
+            offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+            offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+            setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+            setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+        } else if ((960 / newWidth).toFixed(2) > 3){
+            newWidth = 320;
+            newHeight = 180;
+            offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
+            offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
+            setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+            setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+        } else {
+            setViewBoxOrigin({ x: x + offsetX, y: y + offsetY });
+            setSVGSize({ width: newWidth.toFixed(2), height: newHeight.toFixed(2) });    
+        }
+    }
+} 
+
+
+
 export default Zoom;
+export { handleWheel }; 
 
 // styled-components
 const Wrapper = styled.div`

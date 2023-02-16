@@ -53,7 +53,7 @@ function PanMode(props) {
     // 加入 Space 手勢快速切換 SVG 畫布拖拉模式
     useEffect(() => {
         function handleSpaceKeydown(e) {
-            if (e.code === "Space") {
+            if (e.code === "Space" && e.target.id.split("-")[0] !== "nodeContent") {
                 handleSvgPanModeSwitch();
             }
         }
