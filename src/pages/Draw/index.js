@@ -4,7 +4,7 @@ import styled from "styled-components";
 import PanMode from "./tool/PanMode";
 import Zoom, { handleWheel } from "./tool/Zoom";
 import Marker from "./svg/Marker";
-import Remove from "./tool/Remove";
+import Remove, { handleRemoveNode } from "./tool/Remove";
 import { 
     TbArrowBigUpLine, 
     TbArrowBigRightLine,
@@ -109,7 +109,7 @@ function SvgCanvas() {
         }
         handleSVGCoordinateTransfer({ e, delta });
         //  6. 設定新的節點位置  
-        if (!selectedCircle) return
+        if (selectedCircle.id === "default") return
         if (isDragging) {
             // 設定新的 circle 於 SVG 的座標
             selectedCircle.cx -= delta.dx
@@ -144,35 +144,6 @@ function SvgCanvas() {
         setShowCirclePackage(true);
         setIsDragging(false);
         // setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
-    }
- 
-    // 刪除節點與由此節點出發的線段
-    function handleRemoveNode(e){
-        if (e.code === "Delete" && selectedCircle.id !== "default") {
-            const circleIndex = circles.indexOf(selectedCircle)
-            if (circleIndex > -1) {
-                circles.splice(circleIndex, 1)
-            };
-            const lineIndex = lines.filter(line => {
-                return line.startNodeId === selectedCircle.id
-            });
-            lineIndex.forEach(line => {
-                const lineToDeleteIndex = lines.indexOf(line);
-                if (lineToDeleteIndex > -1) {
-                    lines.splice(lineToDeleteIndex, 1)
-                }
-            });
-            setCircles([...circles]);
-            setLines([...lines]);       
-            setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0}); // 關閉圓形節點的工具組
-        } else if (e.code === "Delete" && focusingLine) {
-            const lineIndex = lines.indexOf(focusingLine);
-            if (lineIndex > -1) {
-                lines.splice(lineIndex, 1);
-                setLines([...lines]);
-                setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0}); // 關閉曲線調整工具
-            };
-        }
     }
 
     // 點擊SVG畫布解除選擇節點
@@ -480,6 +451,7 @@ function SvgCanvas() {
         const focusingLine = lines.find(line => line.id === targetLineId);
         setFocusingLine(focusingLine);
         setShowCirclePackage(false);
+        setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0}); // 關閉圓形節點的工具組
         console.log(focusingLine)
     }
 
@@ -663,7 +635,22 @@ function SvgCanvas() {
                 onWheel={(e) => { 
                     handleWheel(e, svgRef, viewBoxOrigin, SVGSize, setSVGSize, setViewBoxOrigin)
                 }}
-                onKeyDown={handleRemoveNode}
+                onKeyDown={(e) => {
+                    handleRemoveNode(
+                        e, 
+                        { 
+                            selectedCircle, 
+                            setSelectedCircle, 
+                            circles, 
+                            setCircles, 
+                            lines, 
+                            setLines, 
+                            focusingLine, 
+                            setFocusingLine, 
+                            setShowCirclePackage 
+                        }
+                    );
+                }}
                 onPointerDown={(e) => {
                     handleSvgCanvasMouseDown();
                     resetSvgCanvas();
@@ -676,7 +663,6 @@ function SvgCanvas() {
                 }}
                 onPointerUp={(e) =>{
                     handleSvgCanvasMouseUp(e);
-                    // handleCircleMouseUp(e);
                     handleTransformUp(e);
                     handleLineBezierCurveUp();
                 }}
@@ -723,12 +709,59 @@ function SvgCanvas() {
                                 selectedCircle.id === circle.id ? "move" : "auto"
                             }
                             onPointerDown={(e) => handleCircleMouseDown(e)}
-                            onPointerUp={(e) => handleCircleMouseUp(e)}
+                            onPointerUp={(e) => {
+                                handleCircleMouseUp(e);
+                                handleTransformUp(e);
+                            }}
                             onDoubleClick={() =>{ 
                                 setIsTexting(true);
                                 setShowCirclePackage(false);
                             }}
                         />
+                        <circle 
+                            display={ circle.id === lineIsOverlapping
+                                    ? "block"
+                                    : "none"
+                                } 
+                            cx={circle.cx} 
+                            cy={circle.cy - circle.r} 
+                            r={5} 
+                            fill="#ffffff" 
+                            stroke="#000000">
+                        </circle>
+                        <circle 
+                            display={ circle.id === lineIsOverlapping
+                                    ? "block"
+                                    : "none"
+                                } 
+                            cx={circle.cx + circle.r} 
+                            cy={circle.cy} 
+                            r={5} 
+                            fill="#ffffff" 
+                            stroke="#000000">
+                        </circle>
+                        <circle 
+                            display={ circle.id === lineIsOverlapping
+                                    ? "block"
+                                    : "none"
+                                } 
+                            cx={circle.cx} 
+                            cy={circle.cy + circle.r} 
+                            r={5} 
+                            fill="#ffffff" 
+                            stroke="#000000">
+                        </circle>
+                        <circle 
+                            display={ circle.id === lineIsOverlapping
+                                    ? "block"
+                                    : "none"
+                                } 
+                            cx={circle.cx - circle.r} 
+                            cy={circle.cy} 
+                            r={5} 
+                            fill="#ffffff" 
+                            stroke="#000000">
+                        </circle>                                                                        
                         <ForeignObject
                             x={ circle.cx + circle.r * Math.cos(225 * (Math.PI/180)) } 
                             y={ circle.cy + circle.r * Math.cos(225 * (Math.PI/180)) }
@@ -737,9 +770,11 @@ function SvgCanvas() {
                             pointerEventMode={
                                 isTexting ? "auto" : "none"
                             }
-                            onPointerDown={(e) => {
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onDoubleClick={(e) => {
                                 e.stopPropagation();
-                            }}                                
+                                setIsTexting(false);
+                            }}                       
                             >
                             <WrapperNodeContent>    
                                 <NodeContent
@@ -749,11 +784,6 @@ function SvgCanvas() {
                                     suppressContentEditableWarning={true}
                                     onInput={handleNodeContent}
                                     data-placeholder= "Text"
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    onDoubleClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsTexting(false);
-                                    }}
                                 >
                                     {circle.content ? circle.content : ""}
                                 </NodeContent>
@@ -955,7 +985,7 @@ const Aside = styled.aside`
     flex-direction: column;
     padding: 20px;
     /* background-color: #ffbb00; */
-    box-shadow: 0 0 1px #000000;
+    /* box-shadow: 0 0 1px #000000; */
     width: 212px;
     margin-top: 0.5px;
     button {
