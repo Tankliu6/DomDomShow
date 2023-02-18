@@ -4,7 +4,8 @@ import styled from "styled-components";
 import PanMode from "./tool/PanMode";
 import Zoom, { handleWheel } from "./tool/Zoom";
 import Marker from "./svg/Marker";
-import Remove, { handleRemoveNode } from "./tool/Remove";
+import Aside from "./tool/Aside";
+import { handleRemoveNode } from "./tool/Remove";
 import { 
     TbArrowBigUpLine, 
     TbArrowBigRightLine,
@@ -41,21 +42,7 @@ function SvgCanvas() {
     const [lineIsOverlapping, setLineIsOverLapping] = useState(false);
     const [isTexting, setIsTexting] = useState(false);
     const [showCirclePackage, setShowCirclePackage] = useState(false);
-
-    function handleAddCircle(e) {
-        e.stopPropagation();
-        const { x, y } = viewBoxOrigin;
-        const { width, height } = SVGSize;
-        const newCircle = {
-            id: uuid(),
-            cx: width / 2 + x,
-            cy: height / 2 + y,
-            r: 40,
-            content: "",
-        };
-        setCircles([...circles, newCircle]);
-    }    
-
+   
     function handleSvgCanvasMouseDown(e){
         svgPanMode.grab === "grab" ? svgIsDraggingRef.current = true : null;
     }
@@ -621,9 +608,19 @@ function SvgCanvas() {
 
     return (
         <Main>           
-            <Aside>
-                <button onClick={handleAddCircle}>Add Circle</button>
-            </Aside>
+            <Aside 
+                viewBoxOrigin={viewBoxOrigin}
+                SVGSize={SVGSize}
+                circles={circles}
+                setCircles={setCircles}               
+                lines={lines}
+                setLines={setLines}
+                selectedCircle={selectedCircle}
+                setSelectedCircle={setSelectedCircle}
+                focusingLine={focusingLine}
+                setFocusingLine={setFocusingLine}
+                setShowCirclePackage={setShowCirclePackage}
+            />
             <Svg
                 tabIndex={-1}
                 id="svg"
@@ -960,14 +957,6 @@ function SvgCanvas() {
                 viewBoxOrigin={viewBoxOrigin} 
                 setViewBoxOrigin={setViewBoxOrigin}
             />
-            <Remove 
-                circles={circles}
-                setCircles={setCircles}
-                lines={lines}
-                setLines={setLines}
-                selectedCircle={selectedCircle}
-                setSelectedCircle={setSelectedCircle}
-            />
         </Main>
     )
 }
@@ -977,31 +966,6 @@ export default SvgCanvas;
 // style-components
 const Main = styled.div`
     display: flex;
-`;
-
-const Aside = styled.aside`
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    /* background-color: #ffbb00; */
-    /* box-shadow: 0 0 1px #000000; */
-    width: 212px;
-    margin-top: 0.5px;
-    button {
-        color: #000000;
-        background-color: #ffffff;
-        border: 2px solid #000000;
-        box-shadow: 0 2px #000000;
-        padding: 10px;
-        margin-right: 10px;
-        border-radius: 20px;
-        font-weight: 800;
-        cursor: pointer;
-        :hover {
-            box-shadow: 0 0px #000000;
-        }
-    }
 `;
 
 const Svg = styled.svg`
