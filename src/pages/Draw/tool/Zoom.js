@@ -261,7 +261,6 @@ const ZoomInAlt = styled(ZoomOutAlt)`
 `
 
 const PercentAlt = styled(ZoomOutAlt)`
-    /* display: flex; */
     justify-content: center;
     align-items: center;
     width: 148px;

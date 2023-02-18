@@ -19,7 +19,6 @@ function PanMode(props) {
 
     function handleSvgPanModeSwitch(){
         if (svgPanMode.grab === "grab"){
-            console.log("svgnodragging")
             setSvgIsDragging(false);
             setTheme({
                 background: "#ffffff",
@@ -30,7 +29,6 @@ function PanMode(props) {
                 grabbing: "default"
             })
         } else {
-            console.log("svgisdragging")
             setTheme({
                 background: "#4a5475",
                 fill: "#ffffff"
@@ -50,20 +48,38 @@ function PanMode(props) {
         }
     }
 
-    // 加入 Space 手勢快速切換 SVG 畫布拖拉模式
+    // 按壓 Space 手勢 SVG 畫布拖拉模式
     useEffect(() => {
         function handleSpaceKeydown(e) {
             if (e.code === "Space" && e.target.id.split("-")[0] !== "nodeContent") {
-                handleSvgPanModeSwitch();
+                setTheme({
+                    background: "#4a5475",
+                    fill: "#ffffff"
+                })
+                setSvgPanMode({
+                    grab: "grab",
+                    grabbing: "grabbing"
+                })
             }
         }
-    
+        function handleSpaceKeyUp(e){
+            if (e.code === "Space" && e.target.id.split("-")[0] !== "nodeContent") {
+                setTheme({
+                    background: "#ffffff",
+                    fill: "#4a5475"
+                })
+                setSvgPanMode({
+                    grab: "default",
+                    grabbing: "default"
+                })
+            }
+        }
         document.addEventListener("keydown", handleSpaceKeydown);
-        return () => {
-            document.removeEventListener("keydown", handleSpaceKeydown);
-        };
-    }, [handleSvgPanModeSwitch, svgPanMode]);
-    
+        document.addEventListener("keyup", handleSpaceKeyUp);
+    }, []);
+
+
+
 
     return(
         <PanContainer onPointerOver={handleAlt} onPointerOut={handleAlt} onClick={handleSvgPanModeSwitch} theme={theme}>

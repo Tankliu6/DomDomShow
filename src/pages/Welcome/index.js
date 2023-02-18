@@ -14,8 +14,7 @@ import { MEDIA_QUERY_MAX_900 } from "../../global/constant/media";
 
 const Welcome = (props) => {
     const { isLoggedIn, setIsLoggedIn, isLoading, setIsLoading } = props;
-    const [showSignIn, setShowSignIn] = useState(false);
-    const [showSignUp, setShowSignUp] = useState(false);
+ 
     const navigate = useNavigate();
 
     function handleMemberAuth() {
@@ -85,7 +84,7 @@ const Background = styled.section`
     align-items: center;
     background-image: url(${background});
     height: calc(100vh - 104px);
-    /* min-height: 660px; */
+    min-height: 660px;
     background-size: cover;
     background-position: center;
 `;

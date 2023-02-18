@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { v4 as uuid } from "uuid";
 import { BiChalkboard } from "react-icons/bi";
 import Remove from "./Remove";
 
 function Aside(props){
-    const { 
+    const {
+        svgRef, 
         viewBoxOrigin, 
         SVGSize, 
         circles, 
@@ -13,21 +14,56 @@ function Aside(props){
         lines, 
         setLines, 
         selectedCircle, 
-        setSelectedCircle, focusingLine, setFocusingLine, setShowCirclePackage } = props;
+        setSelectedCircle, 
+        focusingLine, 
+        setFocusingLine, 
+        setShowCirclePackage, 
+        setNodeIsDragging } = props;
+    const [canAddNewNode, setCanAddNewNode] = useState(false);
+
+    function handleAddNodeDown(e){
+        setNodeIsDragging(true);
+        setCanAddNewNode(true);
+        setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
+        setShowCirclePackage(false);
+    }
+
+    function handleAddNodeLeave(e){
+        const CTM = svgRef.current.getScreenCTM().inverse();
+        const svgPoint = svgRef.current.createSVGPoint();
+        //  1. 滑鼠當前 viewport 中 client 座標值
+        svgPoint.x = e.clientX;
+        svgPoint.y = e.clientY;
+
+        //  2. 計算對應回去的 SVG 座標值
+        const startSVGPoint = svgPoint.matrixTransform(CTM);
+
+        if (canAddNewNode) {
+            const newCircleId = uuid();
+            const newCircle = {
+                id: newCircleId,
+                cx: startSVGPoint.x,
+                cy: startSVGPoint.y,
+                r: 40,
+                content: "",
+            };
+            setCircles([...circles, newCircle]);
+            setSelectedCircle(newCircle);
+            setCanAddNewNode(false);
+            setShowCirclePackage(false);
+        }
+    }
+
     return (
-        <Wrapper>
+        <Wrapper
+            onPointerLeave={(e) => handleAddNodeLeave(e)} 
+        >
             <Header>
                 <BiChalkboard size={25} fill="#efe1e1"></BiChalkboard>    
             </Header>
-            <AddCircle onClick={(e) => {
-                handleAddCircle(
-                    e, 
-                    viewBoxOrigin, 
-                    SVGSize, 
-                    circles, 
-                    setCircles
-                )
-            }}>
+            <AddCircle 
+                onPointerDown={handleAddNodeDown}
+            >
             <Svg width={40} height={40}>
                 <Circle 
                     title="Add Node" 
@@ -57,22 +93,8 @@ function Aside(props){
     )
 }
 
-
-function handleAddCircle(e, viewBoxOrigin, SVGSize, circles, setCircles) {
-    e.stopPropagation();
-    const { x, y } = viewBoxOrigin;
-    const { width, height } = SVGSize;
-    const newCircle = {
-        id: uuid(),
-        cx: width / 2 + x,
-        cy: height / 2 + y,
-        r: 40,
-        content: "",
-    };
-    setCircles([...circles, newCircle]);
-} 
-
 export default Aside;
+
 
 // styled-components
 const Wrapper = styled.div`
@@ -126,6 +148,7 @@ const Rect = styled.rect`
 `
 
 const Line = styled.div`
+    pointer-events: "none";
     height: 1px;
     width: 30px;
     background-color: #dad2d2;

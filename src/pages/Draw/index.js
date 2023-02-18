@@ -29,7 +29,7 @@ function SvgCanvas() {
     const lineEndAtWestRef = useRef([]);
     const [circles, setCircles] = useState([]);
     const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0});
-    const [isDragging, setIsDragging] = useState(false);
+    const [nodeIsDragging, setNodeIsDragging] = useState(false);
     const [viewBoxOrigin, setViewBoxOrigin] = useState({ x: 0, y: 0 })
     const [SVGSize, setSVGSize] = useState({ width: 960, height: 540 })
     const [svgIsDragging, setSvgIsDragging] = useState(false);
@@ -49,7 +49,7 @@ function SvgCanvas() {
     
     function handleSvgCanvasMove(e) {
         e.preventDefault();
-        if (svgIsDraggingRef.current) {
+        if (svgIsDraggingRef.current && svgPanMode.grab === "grab") {
             // 處理滑鼠變動量的 SVG 座標轉換
             let delta = {
                 dx: "",
@@ -70,7 +70,7 @@ function SvgCanvas() {
         e.stopPropagation();
 
         const targetCircleId = e.target.id; // 立即於此點擊事件中找到被點擊的 id, 因為 state 不會立即改變
-        setIsDragging(true);
+        setNodeIsDragging(true);
         console.log(targetCircleId, selectedCircle)
 
         setShowCirclePackage(false);
@@ -97,7 +97,7 @@ function SvgCanvas() {
         handleSVGCoordinateTransfer({ e, delta });
         //  6. 設定新的節點位置  
         if (selectedCircle.id === "default") return
-        if (isDragging) {
+        if (nodeIsDragging) {
             // 設定新的 circle 於 SVG 的座標
             selectedCircle.cx -= delta.dx
             selectedCircle.cy -= delta.dy 
@@ -129,7 +129,7 @@ function SvgCanvas() {
         e.stopPropagation();
         console.log("leave");
         setShowCirclePackage(true);
-        setIsDragging(false);
+        setNodeIsDragging(false);
         // setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
     }
 
@@ -442,11 +442,6 @@ function SvgCanvas() {
         console.log(focusingLine)
     }
 
-    // function handleLineUp(e){
-    //     e.stopPropagation();
-    //     setFocusingLine({id: "default"})
-    // }
-
     function handleLineBezierCurveDown(e){
         e.stopPropagation();
         console.log(focusingLine)
@@ -481,6 +476,10 @@ function SvgCanvas() {
             handleSVGCoordinateTransfer({e, delta});
             focusingLine.x1 -= delta.dx;
             focusingLine.y1 -= delta.dy;
+            focusingLine.cpx1 -= delta.dx;
+            focusingLine.cpy1 -= delta.dy;
+            focusingLine.cpx2 -= delta.dx;
+            focusingLine.cpy2 -= delta.dy;
             handleLineChangeNode(true); // true 更改 startNodeId
             setLines([...lines]);   
         } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "endNode") {
@@ -491,6 +490,10 @@ function SvgCanvas() {
             handleSVGCoordinateTransfer({e, delta});
             focusingLine.x2 -= delta.dx;
             focusingLine.y2 -= delta.dy;
+            focusingLine.cpx1 -= delta.dx;
+            focusingLine.cpy1 -= delta.dy;
+            focusingLine.cpx2 -= delta.dx;
+            focusingLine.cpy2 -= delta.dy;
             handleLineChangeNode(false); // false 更改 endNodeId
             setLines([...lines]);
         }
@@ -608,7 +611,8 @@ function SvgCanvas() {
 
     return (
         <Main>           
-            <Aside 
+            <Aside
+                svgRef={svgRef} 
                 viewBoxOrigin={viewBoxOrigin}
                 SVGSize={SVGSize}
                 circles={circles}
@@ -620,6 +624,7 @@ function SvgCanvas() {
                 focusingLine={focusingLine}
                 setFocusingLine={setFocusingLine}
                 setShowCirclePackage={setShowCirclePackage}
+                setNodeIsDragging={setNodeIsDragging}
             />
             <Svg
                 tabIndex={-1}
@@ -790,6 +795,7 @@ function SvgCanvas() {
                 ))}
                 <GroupWrapper display={ showCirclePackage ? "block" : "none" }>
                     <ForeignObjectNodeTool
+                        tabIndex={-1}
                         x={selectedCircle.cx - 17.5} 
                         y={selectedCircle.cy - (selectedCircle.r + 60)}
                         width={35} 
@@ -804,6 +810,7 @@ function SvgCanvas() {
                         </CreateNode>
                     </ForeignObjectNodeTool>
                     <ForeignObjectNodeTool
+                        tabIndex={-1}
                         x={selectedCircle.cx + (selectedCircle.r + 25)} 
                         y={selectedCircle.cy - 17.5}
                         width={35} 
@@ -816,7 +823,8 @@ function SvgCanvas() {
                             <TbArrowBigRightLine size={35}></TbArrowBigRightLine>
                         </CreateNode>
                     </ForeignObjectNodeTool>
-                    <ForeignObjectNodeTool                      
+                    <ForeignObjectNodeTool
+                        tabIndex={-1}                      
                         x={selectedCircle.cx - 17.5} 
                         y={selectedCircle.cy + (selectedCircle.r) + 25 }
                         width={35} 
@@ -830,6 +838,7 @@ function SvgCanvas() {
                         </CreateNode>
                     </ForeignObjectNodeTool>
                     <ForeignObjectNodeTool
+                        tabIndex={-1}
                         x={selectedCircle.cx - (selectedCircle.r + 60) } 
                         y={selectedCircle.cy - 17.5}
                         width={35} 
@@ -935,7 +944,7 @@ function SvgCanvas() {
                         cx={focusingLine.x2} 
                         cy={focusingLine.y2}
                         onPointerDown={(e) => handleLineBezierCurveDown(e)}
-                        onPointerUp={handleLineChangeNodeUp}  
+                        onPointerUp={handleLineChangeNodeUp}
                     />
                 </GroupWrapper>
                 <Marker />
