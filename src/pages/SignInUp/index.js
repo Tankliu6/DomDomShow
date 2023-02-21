@@ -66,6 +66,7 @@ const Wrapper = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: var(--color-background-yellow);
     background-image: url(${backgroundImg});
     background-position: center;
     background-size: cover;

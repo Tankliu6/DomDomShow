@@ -18,12 +18,16 @@ function Aside(props){
         focusingLine, 
         setFocusingLine, 
         setShowCirclePackage, 
-        setNodeIsDragging } = props;
+        setNodeIsDragging,
+        setSelectedLines,
+        setSelectedLines2} = props;
     const [canAddNewNode, setCanAddNewNode] = useState(false);
 
     function handleAddNodeDown(e){
         setNodeIsDragging(true);
         setCanAddNewNode(true);
+        setSelectedLines([]); // 清除上一個node可移動的線段
+        setSelectedLines2([]);
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
         setShowCirclePackage(false);
     }
@@ -46,6 +50,7 @@ function Aside(props){
                 cy: startSVGPoint.y,
                 r: 40,
                 content: "",
+                title: "",
             };
             setCircles([...circles, newCircle]);
             setSelectedCircle(newCircle);
@@ -128,14 +133,15 @@ const AddCircle = styled.div`
     width: 45px;
     height: 40px;
     border-radius: 5px;
-    cursor: pointer;
+    cursor: grab;
+    :active{
+        cursor: grabbing;
+    }
 `
 
 const Svg = styled.svg`
     :hover{
-        & rect {
-            fill: #ff6dd8;
-        }
+        margin-left: 4px;
     }
 `
 

@@ -1,10 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
+import ContentEditable from "react-contenteditable";
 import { v4 as uuid } from "uuid";
 import styled from "styled-components";
 import PanMode from "./tool/PanMode";
 import Zoom, { handleWheel } from "./tool/Zoom";
 import Marker from "./svg/Marker";
 import Aside from "./tool/Aside";
+import Message from "./tool/Message";
 import { handleRemoveNode } from "./tool/Remove";
 import { 
     TbArrowBigUpLine, 
@@ -17,6 +19,7 @@ function SvgCanvas() {
     const svgRef = useRef(null);
     const svgIsDraggingRef = useRef(false);
     const bezierCurvePointIsDraggingRef = useRef({isDragging: false, point: "default"});
+    const nodeTitleRef = useRef("");
     const circleRef = useRef(null);
     const leftRightRef = useRef(null);
     const lineStartAtNorthRef = useRef([]);
@@ -28,10 +31,10 @@ function SvgCanvas() {
     const lineStartAtWestRef = useRef([]);
     const lineEndAtWestRef = useRef([]);
     const [circles, setCircles] = useState([]);
-    const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0});
+    const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0, title: "", content: ""});
     const [nodeIsDragging, setNodeIsDragging] = useState(false);
     const [viewBoxOrigin, setViewBoxOrigin] = useState({ x: 0, y: 0 })
-    const [SVGSize, setSVGSize] = useState({ width: 960, height: 540 })
+    const [SVGSize, setSVGSize] = useState({ width: 960, height: 540 }) // viewbox 0 0 "width" "height"
     const [svgIsDragging, setSvgIsDragging] = useState(false);
     const [svgPanMode, setSvgPanMode] = useState({grab: "default", grabbing: "default"});
     const [lines, setLines] = useState([]);
@@ -43,6 +46,29 @@ function SvgCanvas() {
     const [isTexting, setIsTexting] = useState(false);
     const [showCirclePackage, setShowCirclePackage] = useState(false);
    
+    function handleSVGCoordinateTransfer(props){
+        const { e, delta } = props
+        const CTM = svgRef.current.getScreenCTM().inverse();
+        const svgPoint = svgRef.current.createSVGPoint();
+        //  1. 滑鼠當前 viewport 中 client 座標值
+        svgPoint.x = e.clientX;
+        svgPoint.y = e.clientY;
+
+        //  2. 計算對應回去的 SVG 座標值
+        const startSVGPoint = svgPoint.matrixTransform(CTM);
+
+        //  3. 計算拖曳後滑鼠所在的 viewport client 座標值
+        svgPoint.x = e.clientX + e.movementX;
+        svgPoint.y = e.clientY + e.movementY;
+
+        //  4. 計算對應回去的 SVG 座標值
+        const moveToSVGPoint = svgPoint.matrixTransform(CTM);
+ 
+        //  5. 計算位移量
+        delta.dx = startSVGPoint.x - moveToSVGPoint.x;
+        delta.dy = startSVGPoint.y - moveToSVGPoint.y;      
+    }
+
     function handleSvgCanvasMouseDown(e){
         svgPanMode.grab === "grab" ? svgIsDraggingRef.current = true : null;
     }
@@ -292,30 +318,7 @@ function SvgCanvas() {
         line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
         line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
     }
-
-    function handleSVGCoordinateTransfer(props){
-        const { e, delta } = props
-        const CTM = svgRef.current.getScreenCTM().inverse();
-        const svgPoint = svgRef.current.createSVGPoint();
-        //  1. 滑鼠當前 viewport 中 client 座標值
-        svgPoint.x = e.clientX;
-        svgPoint.y = e.clientY;
-
-        //  2. 計算對應回去的 SVG 座標值
-        const startSVGPoint = svgPoint.matrixTransform(CTM);
-
-        //  3. 計算拖曳後滑鼠所在的 viewport client 座標值
-        svgPoint.x = e.clientX + e.movementX;
-        svgPoint.y = e.clientY + e.movementY;
-
-        //  4. 計算對應回去的 SVG 座標值
-        const moveToSVGPoint = svgPoint.matrixTransform(CTM);
- 
-        //  5. 計算位移量
-        delta.dx = startSVGPoint.x - moveToSVGPoint.x;
-        delta.dy = startSVGPoint.y - moveToSVGPoint.y;      
-    }
-    
+  
     function handleTransformMove(e){
         e.stopPropagation();
         // 節點左半邊
@@ -603,10 +606,12 @@ function SvgCanvas() {
     }
 
     function handleNodeContent(e){
-        const nodeContent = e.target.innerText;
-        const nodeContentId = e.target.id.split("nodeContent-")[1];
+        nodeTitleRef.current = e.target.value;
+        console.log(nodeTitleRef, e.currentTarget.id)
+        const nodeContentId = e.currentTarget.id.split("nodeContent-")[1];
         const selectedCircle = circles.find(circle => circle.id === nodeContentId);
-        selectedCircle.content = nodeContent;
+        selectedCircle.title = e.target.value;
+        setCircles([...circles]);
     }
 
     return (
@@ -625,6 +630,8 @@ function SvgCanvas() {
                 setFocusingLine={setFocusingLine}
                 setShowCirclePackage={setShowCirclePackage}
                 setNodeIsDragging={setNodeIsDragging}
+                setSelectedLines={setSelectedLines}
+                setSelectedLines2={setSelectedLines2}
             />
             <Svg
                 tabIndex={-1}
@@ -669,10 +676,8 @@ function SvgCanvas() {
                     handleLineBezierCurveUp();
                 }}
             >                 
-                {lines.map((line) => (
-                    <GroupWrapper
-                        key={line.id}
-                    >                       
+                {lines.map((line, index) => 
+                    <GroupWrapper key={index}>                       
                         <PathSvg
                             id={line.id}
                             d={`M ${line.x1} ${line.y1} C ${line.cpx1} ${line.cpy1}, ${line.cpx2} ${line.cpy2}, ${line.x2} ${line.y2}`}
@@ -685,9 +690,9 @@ function SvgCanvas() {
                         >
                         </PathSvg>
                     </GroupWrapper>
-                ))}
-                {circles.map((circle) => (
-                    <GroupWrapper key={circle.id}>
+                )}
+                {circles.map((circle, index) => 
+                    <GroupWrapper key={index}>
                         <CircleSvg
                             ref={circleRef}
                             cx={circle.cx}
@@ -772,27 +777,32 @@ function SvgCanvas() {
                             pointerEventMode={
                                 isTexting ? "auto" : "none"
                             }
-                            onPointerDown={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => {
+                                e.stopPropagation();
+                                const nodeId = e.target.id.split("nodeContent-")[1];
+                                const selected = circles.find((c) => c.id === nodeId);
+                                setSelectedCircle(selected);
+                                setNodeIsDragging(false);
+                            }}
                             onDoubleClick={(e) => {
                                 e.stopPropagation();
                                 setIsTexting(false);
                             }}                       
                             >
-                            <WrapperNodeContent>    
+                            <WrapperNodeContent
+                                id={"nodeContent-" + circle.id}
+                            >    
                                 <NodeContent
                                     id={"nodeContent-" + circle.id}
-                                    title="Happy text"
-                                    contentEditable={true}
-                                    suppressContentEditableWarning={true}
-                                    onInput={handleNodeContent}
-                                    data-placeholder= "Text"
-                                >
-                                    {circle.content ? circle.content : ""}
-                                </NodeContent>
+                                    html={circle.title ?? ""}
+                                    onChange={handleNodeContent}
+                                    placeholder= {isTexting ? "Title" : ""}
+                                    istexting={isTexting.toString()}
+                                />
                             </WrapperNodeContent>
                         </ForeignObject>
                     </GroupWrapper>
-                ))}
+                )}
                 <GroupWrapper display={ showCirclePackage ? "block" : "none" }>
                     <ForeignObjectNodeTool
                         tabIndex={-1}
@@ -949,7 +959,7 @@ function SvgCanvas() {
                 </GroupWrapper>
                 <Marker />
             </Svg>
-            <PanMode 
+            <PanMode
                 svgRef={svgRef}
                 svgPanMode={svgPanMode} 
                 setSvgPanMode={setSvgPanMode}
@@ -965,6 +975,11 @@ function SvgCanvas() {
                 setSVGSize={setSVGSize} 
                 viewBoxOrigin={viewBoxOrigin} 
                 setViewBoxOrigin={setViewBoxOrigin}
+            />
+            <Message 
+                selectedCircle={selectedCircle}
+                circles={circles}
+                setCircles={setCircles}
             />
         </Main>
     )
@@ -1029,20 +1044,18 @@ const WrapperNodeContent = styled.div`
     overflow: auto;
 `
 
-const NodeContent = styled.div`
+const NodeContent = styled(ContentEditable)`
     width: 100%;
     color: #000000;
-    font-size: ${props => props.fontSize || "24px"};
+    font-size: ${props => props.fontSize || "16px"};
+    outline: 0px;
     &::before{
-        content: attr(data-placeholder);
+        content: attr(placeholder);
         color: #cccccc;
         display: inline-block;
     }
-    &[contentEditable="true"]:not(:empty)::before {
+    &[istexting="true"]:not(:empty)::before{
         display: none;
-    }
-    &[contentEditable="true"] {
-        outline: 0px
     }
 `
 

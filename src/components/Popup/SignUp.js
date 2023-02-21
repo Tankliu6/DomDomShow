@@ -92,6 +92,7 @@ const SignUp = (props) => {
             <Email placeholder="Email" onChange={handleEmail}></Email>
             <Password
                 placeholder="Password"
+                type="password"
                 onChange={handlePassword}
             ></Password>
             <Submit 
