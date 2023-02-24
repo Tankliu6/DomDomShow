@@ -179,7 +179,7 @@ const Nav = styled.section`
     background-color: var(--color-background-yellow);
     padding: 30px 10px 30px 10px;
     :hover {
-        background-color: #ffffff;
+        background-color: #ffea94;
     }
     ${media.MEDIA_QUERY_MIN_900} {
         padding: 20px 10px 20px 10px;

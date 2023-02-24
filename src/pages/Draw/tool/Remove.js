@@ -6,7 +6,7 @@ import { FaTrash } from "react-icons/fa";
 
 // 刪除節點與由此節點出發的線段
 function handleRemoveNode(e, props) {
-    const { selectedCircle, setSelectedCircle, circles, setCircles, lines, setLines, focusingLine, setFocusingLine, setShowCirclePackage } = props;
+    const { selectedCircle, setSelectedCircle, circles, setCircles, lines, setLines, focusingLine, setFocusingLine, setUseCirclePackage } = props;
     if (e.code === "Delete" && selectedCircle.id !== "default" || e.type === "click" && selectedCircle.id !== "default") {
         const circleIndex = circles.indexOf(selectedCircle)
         if (circleIndex > -1) {
@@ -25,14 +25,14 @@ function handleRemoveNode(e, props) {
         setLines([...lines]);       
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0}); // 關閉圓形節點的工具組
         setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0}); // 關閉曲線調整工具
-        setShowCirclePackage(false);
+        setUseCirclePackage(false);
     } else if (e.code === "Delete" && focusingLine || e.type === "click" && focusingLine) {
         const lineIndex = lines.indexOf(focusingLine);
         if (lineIndex > -1) {
             lines.splice(lineIndex, 1);
             setLines([...lines]);
             setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0}); // 關閉曲線調整工具
-            setShowCirclePackage(false);
+            setUseCirclePackage(false);
         };
     }
 }
@@ -47,7 +47,8 @@ function Remove(props){
         setSelectedCircle, 
         focusingLine, 
         setFocusingLine, 
-        setShowCirclePackage } = props;
+        setUseCirclePackage, 
+        setHintForRemove } = props;
     return (
         <Delete
             size={25}
@@ -64,9 +65,17 @@ function Remove(props){
                         setSelectedCircle,
                         focusingLine,
                         setFocusingLine,
-                        setShowCirclePackage
+                        setUseCirclePackage
                     }
                 )
+            }}
+            onPointerOver={e => {
+                e.stopPropagation();
+                setHintForRemove(true);
+            }}
+            onPointerOut={e => {
+                e.stopPropagation();
+                setHintForRemove(false);
             }}
         />  
     )

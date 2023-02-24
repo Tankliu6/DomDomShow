@@ -31,7 +31,6 @@ function Zoom(props){
     }
 
     function handleZoomOut(e){
-        e.preventDefault();
         const { x, y } = viewBoxOrigin;
         const { width, height } = SVGSize;
         let newWidth = width * 1.1; // zoom 最大 200% 最小 50%
@@ -75,7 +74,6 @@ function Zoom(props){
     }
 
     function handleZoomIn(e){
-        e.preventDefault();
         const { x, y } = viewBoxOrigin;
         const { width, height } = SVGSize;
         let newWidth = width * 1/1.1; // zoom 最大 200% 最小 50%
