@@ -41,7 +41,7 @@ function ToolBar(props){
         } else if (fontSize === "12px") {
             selectedCircle.fontSize = "14px";
         }
-        setCircles([...circles])
+        setCircles((prev) => [...prev])
     }
 
     function handleMinusFontSize(e){
@@ -57,13 +57,13 @@ function ToolBar(props){
         } else if (fontSize === "14px") {
             selectedCircle.fontSize = "12px";
         }
-        setCircles([...circles])
+        setCircles((prev) => [...prev])
     }
 
     function handleNodeColor(color){
         selectedCircle.fill = `${color.hex}`;
         selectedCircle.stroke = `${color.hex}`;
-        setCircles([...circles]);
+        setCircles((prev) => [...prev]);
     }
 
     function handleColorPickerActive(e){
@@ -76,10 +76,10 @@ function ToolBar(props){
         console.log(selectedCircle.fontWeight)
         if (selectedCircle.fontWeight === "initial") {
             selectedCircle.fontWeight = "bold";
-            setCircles([...circles])
+            setCircles((prev) => [...prev])
         } else {
             selectedCircle.fontWeight = "initial";
-            setCircles([...circles])
+            setCircles((prev) => [...prev])
         }
     }
 

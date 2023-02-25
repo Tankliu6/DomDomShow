@@ -80,6 +80,7 @@ function SvgCanvas() {
     }
     
     function handleSvgCanvasMove(e) {
+        e.stopPropagation();
         if (svgIsDraggingRef.current && svgPanMode.grab === "grab") {
             // 處理滑鼠變動量的 SVG 座標轉換
             let delta = {
@@ -135,7 +136,7 @@ function SvgCanvas() {
             // 設定新的 circle 於 SVG 的座標
             selectedCircle.cx -= delta.dx
             selectedCircle.cy -= delta.dy 
-            setCircles([...circles]);
+            setCircles((prev) => [...prev]);
             // 設定該節點的線段連接點同步移動
             // 由其他節點出發至此被移動節點的線段連接點    
             selectedLines2.forEach(line => {
@@ -146,12 +147,13 @@ function SvgCanvas() {
                 line.cpx2 -= delta.dx * 0.6;
                 line.cpy2 -= delta.dy * 0.6; 
             })
-            setLines([...lines])
+            setLines((prev) => [...prev])
         } else if (nodeIsDragging) {
+            console.log("helo222")
             // 設定新的 circle 於 SVG 的座標
             selectedCircle.cx -= delta.dx
             selectedCircle.cy -= delta.dy 
-            setCircles([...circles]);
+            setCircles((prev) => [...prev]);
             // 設定該節點的線段連接點同步移動
             // 該節點出發的線段連接點
             selectedLines.forEach(line => {
@@ -171,7 +173,7 @@ function SvgCanvas() {
                 line.cpx2 -= delta.dx;
                 line.cpy2 -= delta.dy;
             })
-            setLines([...lines])
+            setLines((prev) => [...prev])
         }
     }
         
@@ -213,7 +215,7 @@ function SvgCanvas() {
                 lineStroke: "#443755",
                 firstMove: true,
             };
-            setCircles([...circles, newCircle]);
+            setCircles(prev => [...prev, newCircle]);
             setSelectedCircle(newCircle);
             setNodeIsDragging(true);
             setUseCirclePackage(false);   
@@ -301,7 +303,7 @@ function SvgCanvas() {
                 y2: selectedCircle.cy - selectedCircle.r - 40
             }) 
         }
-        setLines([...lines, newLine])
+        setLines((prev) => [...prev, newLine])
     }
 
     function handleTransformDown(e){
@@ -377,7 +379,7 @@ function SvgCanvas() {
                 } else {
                     selectedCircle.r += delta.dx;
                 }
-            setCircles([...circles])     
+            setCircles((prev) => [...prev])     
             // 設定該節點的線段同步移動
             // 上
             lineStartAtNorthRef.current.forEach(line => {
@@ -415,7 +417,7 @@ function SvgCanvas() {
                 console.log("W1-2")
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;   
             })
-            setLines([...lines])
+            setLines((prev) => [...prev])
 
         // 節點右半邊
         } else if (transformIsDragging && !leftRightRef.current) {
@@ -430,7 +432,7 @@ function SvgCanvas() {
                 } else {
                     selectedCircle.r -= delta.dx;
                 }
-            setCircles([...circles])
+            setCircles((prev) => [...prev])
             // 上
             lineStartAtNorthRef.current.forEach(line => {
                 console.log("N1")
@@ -467,7 +469,7 @@ function SvgCanvas() {
                 console.log("W1-2")
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;  
             })            
-            setLines([...lines])  
+            setLines((prev) => [...prev])  
         }
     }
 
@@ -544,7 +546,7 @@ function SvgCanvas() {
                 focusingLine.endNodeId = "";
             }
 
-            setLines([...lines]);
+            setLines((prev) => [...prev]);
         }
     }
 
@@ -605,6 +607,7 @@ function SvgCanvas() {
         }
         setLineIsDragging(false);
         setLineIsOverLapping({startNodeId: false, endNodeId: false});
+        setNodeIsDragging(false);
     }
 
     function handleLineBezierCurveDown(e){
@@ -615,6 +618,7 @@ function SvgCanvas() {
     }
 
     function handleLineBezierCurveMove(e){
+        e.stopPropagation();
         if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "BezierP1"){
             let delta={
                 dx: "",
@@ -623,7 +627,7 @@ function SvgCanvas() {
             handleSVGCoordinateTransfer({e, delta});
             focusingLine.cpx1 -= delta.dx;
             focusingLine.cpy1 -= delta.dy;
-            setLines([...lines]);   
+            setLines((prev) => [...prev]);   
         } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "BezierP2") {
             let delta={
                 dx: "",
@@ -632,7 +636,7 @@ function SvgCanvas() {
             handleSVGCoordinateTransfer({e, delta});
             focusingLine.cpx2 -= delta.dx;
             focusingLine.cpy2 -= delta.dy;
-            setLines([...lines]);
+            setLines((prev) => [...prev]);
         } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "startNode"){
             let delta={
                 dx: "",
@@ -646,7 +650,7 @@ function SvgCanvas() {
             focusingLine.cpx2 -= delta.dx;
             focusingLine.cpy2 -= delta.dy;
             handleLineChangeNode(true); // true 更改 startNodeId
-            setLines([...lines]);   
+            setLines((prev) => [...prev]);   
         } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "endNode") {
             let delta={
                 dx: "",
@@ -660,7 +664,7 @@ function SvgCanvas() {
             focusingLine.cpx2 -= delta.dx;
             focusingLine.cpy2 -= delta.dy;
             handleLineChangeNode(false); // false 更改 endNodeId
-            setLines([...lines]);
+            setLines((prev) => [...prev]);
         }
     }
 
@@ -776,7 +780,7 @@ function SvgCanvas() {
         const nodeContentId = e.currentTarget.id.split("nodeContent-")[1];
         const selectedCircle = circles.find(circle => circle.id === nodeContentId);
         selectedCircle.title = e.target.value;
-        setCircles([...circles]);
+        setCircles((prev) => [...prev]);
     }
 
     return (

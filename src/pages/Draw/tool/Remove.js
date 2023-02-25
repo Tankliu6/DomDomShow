@@ -21,16 +21,16 @@ function handleRemoveNode(e, props) {
                 lines.splice(lineToDeleteIndex, 1)
             }
         });
-        setCircles([...circles]);
-        setLines([...lines]);       
+        setCircles((prev) => [...prev]);
+        setLines((prev) => [...prev]);       
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0}); // 關閉圓形節點的工具組
         setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0}); // 關閉曲線調整工具
         setUseCirclePackage(false);
-    } else if (e.code === "Delete" && focusingLine || e.type === "click" && focusingLine) {
+    } else if (e.code === "Delete" && focusingLine.id !== "default" || e.type === "click" && focusingLine.id !== "default") {
         const lineIndex = lines.indexOf(focusingLine);
         if (lineIndex > -1) {
             lines.splice(lineIndex, 1);
-            setLines([...lines]);
+            setLines((prev) => [...prev]);
             setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0}); // 關閉曲線調整工具
             setUseCirclePackage(false);
         };

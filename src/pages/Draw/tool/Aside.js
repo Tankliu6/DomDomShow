@@ -30,6 +30,8 @@ function Aside(props){
     function handleAddNodeDown(e){
         setNodeIsDragging(true);
         setCanAddNewNode(true);
+        setCanAddNewLine(false);
+        setFocusingLine({ id: "default", x1: 0, y1: 0 , cpx1: 0, cpy1: 0, cpx2: 0, cpy2: 0, x2: 0, y2: 0});
         setSelectedLines([]); // 清除上一個node可移動的線段
         setSelectedLines2([]);
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
@@ -60,7 +62,7 @@ function Aside(props){
                 stroke: "#ffffff",
                 lineStroke: "#443755",
             };
-            setCircles([...circles, newCircle]);
+            setCircles((prev) => [...prev, newCircle]);
             setSelectedCircle(newCircle);
             setCanAddNewNode(false);
             setUseCirclePackage(false);
@@ -69,6 +71,7 @@ function Aside(props){
 
     function handleAddLineDown(e){
         setCanAddNewLine(true);
+        setCanAddNewNode(false);
         setLineIsDragging(true);
         setSelectedLines([]); // 清除上一個node可移動的線段
         setSelectedLines2([]);
@@ -107,7 +110,7 @@ function Aside(props){
                 y2: startSVGPoint.y - 50,
             };
             setFocusingLine(newLine);
-            setLines([...lines, newLine]);
+            setLines((prev) => [...prev, newLine]);
             setCanAddNewLine(false);
             console.log(newLine)
         }

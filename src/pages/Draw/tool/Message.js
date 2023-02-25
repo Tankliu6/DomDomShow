@@ -7,12 +7,12 @@ function Message(props){
     function handleNoteTitle(e){
         e.stopPropagation();
         selectedCircle.title = e.target.value;
-        setCircles([...circles])
+        setCircles((prev) => [...prev])
     }
     function handleNoteContent(e){
         e.stopPropagation();
         selectedCircle.content = e.target.value;
-        setCircles([...circles])
+        setCircles((prev) => [...prev])
     }
 
     return (
