@@ -4,8 +4,6 @@ import background from "../../img/bg_mv_sp.png";
 import imgMain from "../../img/mv_img_base.png";
 import imgLeft from "../../img/mv_img_panel_05.png";
 import imgRight from "../../img/mv_img_guest_04.png";
-import SignIn from "../../components/Popup/SignIn";
-import SignUp from "../../components/Popup/SignUp";
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase";
 import { useNavigate } from "react-router-dom";

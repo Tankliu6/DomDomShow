@@ -67,7 +67,7 @@ const App = () => {
                         setShowLayer={setShowLayer}
                     />} />;
                     <Route path="/Draw/playground" element={<SvgCanvas />} />;
-                    <Route path="/Draw/:docId/:drawId" element={<SvgCanvas />} />;
+                    <Route path="/Draw/:docId" element={<SvgCanvas />} />;
                 </Routes>
             </UserContext.Provider>
         </>
