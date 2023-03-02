@@ -8,6 +8,8 @@ export const MEDIA_QUERY_MIN_1200 = "@media screen and (min-width: 1200px)";
 // *** px 以下
 export const MEDIA_QUERY_MAX_1200 = "@media screen and (max-width: 1200px)";
 export const MEDIA_QUERY_MAX_900 = "@media screen and (max-width: 900px)";
+export const MEDIA_QUERY_MAX_768 = "@media screen and (max-width: 768px)";
+
 
 const media = {
     MEDIA_QUERY_MIN_360: MEDIA_QUERY_MIN_360,
@@ -16,7 +18,8 @@ const media = {
     MEDIA_QUERY_MIN_1080: MEDIA_QUERY_MIN_1080,
     MEDIA_QUERY_MIN_1200: MEDIA_QUERY_MIN_1200,
     MEDIA_QUERY_MAX_1200: MEDIA_QUERY_MAX_1200,
-    MEDIA_QUERY_MAX_900: MEDIA_QUERY_MAX_900
+    MEDIA_QUERY_MAX_900: MEDIA_QUERY_MAX_900,
+    MEDIA_QUERY_MAX_768: MEDIA_QUERY_MAX_768
 }
 
 export default media

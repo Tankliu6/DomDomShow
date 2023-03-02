@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Wrapper,
     Title,
@@ -29,21 +29,30 @@ const SignIn = (props) => {
         popUpTitleRef,
         setShowLayer
     } = props;
-    const email = useRef();
-    const password = useRef();
+    const emailRef = useRef();
+    const passwordRef = useRef();
     const [submitOpacity, setSubmitOpacity] = useState();
     const [submitCursor, setSubmitCursor] = useState();
+
+    useEffect(() => {
+        const email = document.querySelector(".email");
+        emailRef.current = "test999@test.com";
+        email.value = "test999@test.com";
+        const password = document.querySelector(".password");
+        passwordRef.current = 12345678;
+        password.value = 12345678;
+    })
 
     function handleSwitchDialog() {
         setSwitchDialog(false);
     }
 
     function handleEmail(e) {
-        email.current = e.target.value;
+        emailRef.current = e.target.value;
     }
 
     function handlePassword(e) {
-        password.current = e.target.value;
+        passwordRef.current = e.target.value;
     }
 
     function handleSingInWithEmailAndPassword() {
@@ -52,7 +61,7 @@ const SignIn = (props) => {
         setShowLayer("block")
         if (memberAuthIsLoading === false) {
             setMemberAuthIsLoading(true);
-            signInWithEmailAndPassword(auth, email.current, password.current)
+            signInWithEmailAndPassword(auth, emailRef.current, passwordRef.current)
                 .then((userCredential) => {
                     // login ok
                     const user = userCredential.user;
@@ -89,8 +98,9 @@ const SignIn = (props) => {
     return (
         <Wrapper>
             <Title>DomDomShow</Title>
-            <Email placeholder="Email" onChange={handleEmail}></Email>
+            <Email className="email" placeholder="Email" onChange={handleEmail}></Email>
             <Password
+                className="password"
                 placeholder="Password"
                 type="password"
                 onChange={handlePassword}

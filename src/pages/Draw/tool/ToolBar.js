@@ -194,7 +194,7 @@ const Wrapper = styled.div`
         flex-direction: column;
         visibility: visible;
         opacity: 1;
-        top: 340px;
+        top: 400px;
         left: 20px;
         padding: 0 10px 10px 10px;
         height: 280px;

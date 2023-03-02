@@ -2,23 +2,23 @@ import React, { useRef, useState, useEffect } from "react";
 import ContentEditable from "react-contenteditable";
 import { v4 as uuid } from "uuid";
 import styled from "styled-components";
+import { doc, getDoc, getDocs } from "firebase/firestore";
 import PanMode from "./tool/PanMode";
 import Zoom, { handleWheel } from "./tool/Zoom";
 import Marker from "./svg/Marker";
 import Aside from "./tool/Aside";
 import Message from "./tool/Message";
 import ToolBar from "./tool/ToolBar";
+import TitleBoard from "./tool/Title";
 import svgbg from "../../img/svgbg.jpg"
 import { handleRemoveNode } from "./tool/Remove";
 import { BsNodePlusFill } from "react-icons/bs";
-import { 
-    TbArrowBigUpLine, 
-    TbArrowBigRightLine,
-    TbArrowBigDownLine,
-    TbArrowBigLeftLine
-    } from "react-icons/tb";
+import { db, auth } from "../../firebase";
+import { useLocation } from "react-router-dom";
 
-function SvgCanvas() {
+function SvgCanvas(props) {
+    const { isLoading, setIsLoading } = props;
+    const pageRef = useRef(null);
     const svgRef = useRef(null);
     const svgIsDraggingRef = useRef(false);
     const bezierCurvePointIsDraggingRef = useRef({isDragging: false, point: "default"});
@@ -33,6 +33,7 @@ function SvgCanvas() {
     const lineEndAtSouthRef = useRef([]);
     const lineStartAtWestRef = useRef([]);
     const lineEndAtWestRef = useRef([]);
+    const [title, setTitle] = useState("");
     const [circles, setCircles] = useState([]);
     const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0, title: "", content: ""});
     const [nodeIsDragging, setNodeIsDragging] = useState(false);
@@ -51,6 +52,41 @@ function SvgCanvas() {
     const [useCirclePackage, setUseCirclePackage] = useState(false);
     const [useNodeToolSideBar, setUseNodeToolSideBar] = useState(false);
     const [useCommentBoard, setUseCommentBoard] = useState(false);
+    const location = useLocation();
+    const [pathname, setPathname] = useState(location.pathname.split("/")[2]);
+
+    // 畫布初始化
+    useEffect(() => {
+        console.log("fetch new data in draw-page")
+        if (location.pathname.split("/")[2] === "playground") {
+            setTitle("Playground can't save !");
+            setSVGSize({ width: 960, height: 540 });
+            setViewBoxOrigin({ x: 0, y: 0 });
+            setCircles([]);
+            setLines([]);
+            resetSvgCanvas();
+        }
+        async function fetchData() {
+            setIsLoading(true);
+            try {
+                const docRef = doc(db, "canvas", location.pathname.split("/")[3]);
+                const docSnap = await getDoc(docRef);
+                const data = docSnap.data();
+                if (data) {
+                    setTitle(data.title);
+                    setSVGSize(data.SVGSize);
+                    setViewBoxOrigin(data.viewBoxOrigin);
+                    setCircles(data.circles);
+                    setLines(data.lines);
+                }
+            } catch (e) {
+                console.log(e);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, [pathname])
 
     function handleSVGCoordinateTransfer(props){
         const { e, delta } = props
@@ -784,7 +820,17 @@ function SvgCanvas() {
     }
 
     return (
-        <Main>           
+        <Main ref={pageRef}>
+            <TitleBoard
+                viewBoxOrigin={viewBoxOrigin}
+                SVGSize={SVGSize}
+                circles={circles}
+                lines={lines}
+                title={title}
+                setTitle={setTitle}
+                svgRef={svgRef}
+                pageRef={pageRef}
+            />
             <Aside
                 svgRef={svgRef} 
                 viewBoxOrigin={viewBoxOrigin}

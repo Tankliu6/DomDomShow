@@ -189,7 +189,7 @@ const Container = styled.div`
     user-select: none;
     position: absolute;
     left: 20px;
-    margin-top: 20px;
+    margin-top: 90px;
     display: flex;
     flex-direction: column;
     align-items: center;
