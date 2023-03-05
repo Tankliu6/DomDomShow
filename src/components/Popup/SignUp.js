@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from "react";
 import {
     Wrapper,
     Title,
@@ -8,90 +8,109 @@ import {
     Notice,
     CloseButton,
     Hint,
-} from './style/sharedStyle';
-import Close from '../../img/close-btn.png';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { db, auth } from '../../firebase';
-import { useNavigate } from 'react-router-dom';
+    Playground
+} from "./style/sharedStyle";
+import Close from "../../img/close-btn.png";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { db, auth } from "../../firebase";
+import { useNavigate } from "react-router-dom";
+
 const SignUp = (props) => {
     const navigate = useNavigate();
     const {
-        showSignUp,
-        setShowSignUp,
-        showSignIn,
-        setShowSignIn,
-        isLoading,
-        setIsLoading,
+        switchDialog,
+        setSwitchDialog,
+        memberAuthIsLoading,
+        setMemberAuthIsLoading,
+        showPopUp, 
+        setShowPopUp,
+        popUpTitleRef,
+        setShowLayer
     } = props;
     // const [isLoading, setIsLoading] = useState(false);
     const email = useRef();
     const password = useRef();
+    const [submitOpacity, setSubmitOpacity] = useState();
+    const [submitCursor, setSubmitCursor] = useState();
 
-    function handleSwitchPopup() {
-        setShowSignIn(true);
-        setShowSignUp(false);
+    function handleSwitchDialog() {
+        setSwitchDialog(true)
     }
 
     function handleEmail(e) {
         email.current = e.target.value;
-        console.log(email.current);
     }
 
     function handlePassword(e) {
         password.current = e.target.value;
-        console.log(password.current);
     }
 
     function handleSingUpWithEmailAndPassword() {
-        if (isLoading === false) {
-            setIsLoading(true);
+        setSubmitOpacity(0.6);
+        setSubmitCursor("not-allowed");
+        setShowLayer("block")
+        if (memberAuthIsLoading === false) {
+            setMemberAuthIsLoading(true);
             createUserWithEmailAndPassword(
                 auth,
                 email.current,
                 password.current
             )
-                .then((userCredential) => {
-                    // signup ok
-                    const user = userCredential.user;
-                    console.log(user);
-                    navigate('/');
-                })
-                .catch((error) => {
-                    // signup fail
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    console.log(errorCode);
-                    console.log(errorMessage);
-                    navigate('/');
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
+            .then((userCredential) => {
+                // signup ok
+                const user = userCredential.user;
+                setShowPopUp(true);
+                popUpTitleRef.current = "註冊成功";
+            })
+            .catch((error) => {
+                // signup fail
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.log(errorCode, errorMessage);
+                setShowPopUp(true);
+                popUpTitleRef.current = "註冊失敗";
+            })
+            .finally(() => {
+                setMemberAuthIsLoading(false);
+                setSubmitCursor("pointer");
+                setSubmitOpacity("1");
+                setShowLayer("none")
+                setTimeout(() => {
+                    setShowPopUp(false)
+                }, 2000)
+            });
         }
     }
 
-    console.log('fire');
+    function handleNavigateToPlayground(){
+        navigate("/Draw/playground");
+    }
 
     return (
         <Wrapper>
-            <CloseButton
-                src={Close}
-                onClick={() => {
-                    setShowSignUp(false);
-                    setShowSignIn(false);
-                }}
-            />
             <Title>DomDomShow</Title>
             <Email placeholder="Email" onChange={handleEmail}></Email>
             <Password
                 placeholder="Password"
+                type="password"
                 onChange={handlePassword}
             ></Password>
-            <Submit onClick={handleSingUpWithEmailAndPassword}>註冊</Submit>
-            <Notice onClick={handleSwitchPopup}>
+            <Submit 
+                cursor={submitCursor}
+                opacity={submitOpacity} 
+                onClick={handleSingUpWithEmailAndPassword}
+            >
+                註冊
+            </Submit>            
+            <Notice onClick={handleSwitchDialog}>
                 已經有帳號了?
                 <Hint>登入</Hint>
             </Notice>
+            <Playground onClick = {handleNavigateToPlayground}>點我試用
+                <Hint>
+                    來吧
+                </Hint>
+            </Playground>
         </Wrapper>
     );
 };

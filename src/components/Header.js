@@ -1,33 +1,30 @@
-import styled from 'styled-components';
-import React from 'react';
-import { useState, useEffect } from 'react';
-import SignIn from './Popup/SignIn';
-import SignUp from './Popup/SignUp';
+import styled from "styled-components";
+import React, { useRef, useState, useEffect } from "react";
 import {
     MEDIA_QUERY_MIN_360,
     MEDIA_QUERY_MIN_768,
     MEDIA_QUERY_MIN_1080,
     MEDIA_QUERY_MIN_1200,
     MEDIA_QUERY_MAX_1200,
-} from '../global/constant/media';
-import { deleteApp } from 'firebase/app';
-import { db, auth } from '../firebase';
-import { signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
-import Loading from './Loading';
+} from "../global/constant/media";
+import { db, auth } from "../firebase";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import media from "../global/constant/media";
+import { HiOutlineMenuAlt4 } from "react-icons/hi";
+import { RxCross1 } from "react-icons/rx";
 
 const Header = (props) => {
     const { isLoggedIn, setIsLoggedIn, isLoading, setIsLoading } = props;
-    const [showSignIn, setShowSignIn] = useState(false);
-    const [showSignUp, setShowSignUp] = useState(false);
+    const [dropDawnListDisplay, setDropDawnListDisplay] = useState("none");
+    const [dropDawnListShowing, setDropDawnListShowing] = useState(false);
+    const navigate = useNavigate();
 
     function handleMemberAuth() {
-        if (showSignIn == true || showSignUp == true) {
-            setShowSignIn(false);
-            setShowSignUp(false);
-        } else {
-            setShowSignIn(!showSignIn);
-            setShowSignUp(!showSignUp);
+        if (isLoggedIn) {
+            navigate("/");
+        } else if (!isLoggedIn) {
+            navigate("/login");
         }
     }
 
@@ -36,7 +33,7 @@ const Header = (props) => {
             .then(() => {
                 // logout ok
                 setIsLoggedIn(false);
-                console.log('logout');
+                console.log("logout");
             })
             .catch((error) => {
                 // error
@@ -45,82 +42,145 @@ const Header = (props) => {
             });
     }
 
+    function handleDropDawnList(){
+        if (dropDawnListShowing){
+            setDropDawnListDisplay("none");
+            setDropDawnListShowing(false)
+        } else {
+            setDropDawnListDisplay("flex");
+            setDropDawnListShowing(true);
+        }
+    }
+
+    useEffect(() => {
+        setDropDawnListDisplay("none");
+        setDropDawnListShowing(false);
+    }, [window.location.pathname])
+
     return (
         <Nav>
             <Wrapper>
                 <TitleWrapper />
                 <NavRight>
+                    <PlaygroundWrapper />
                     <MyDrawWrapper
                         isLoggedIn={isLoggedIn}
-                        setIsLoggedIn={setIsLoggedIn}
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
                     ></MyDrawWrapper>
                     {!isLoggedIn && (
-                        <Auth onClick={handleMemberAuth}>Login/Signup</Auth>
+                        <Auth onClick={handleMemberAuth}>
+                            Login/Signup
+                            <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
+                            </ArrowSvgWhite>
+                        </Auth>
                     )}
                     {isLoggedIn && (
-                        <Auth onClick={handleMemberLogout}>Logout</Auth>
+                        <Auth className={isLoggedIn ? "active" : ""} onClick={handleMemberLogout}>
+                            Logout
+                            <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
+                            </ArrowSvgWhite>
+                        </Auth>
                     )}
                 </NavRight>
-                {showSignIn && (
-                    <SignIn
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
-                        showSignIn={showSignIn}
-                        setShowSignIn={setShowSignIn}
-                        isLoggedIn={isLoggedIn}
-                        setIsLoggedIn={setIsLoggedIn}
-                        isLoading={isLoading}
-                        setIsLoading={setIsLoading}
-                    />
-                )}
-                {showSignUp && (
-                    <SignUp
-                        showSignUp={showSignUp}
-                        setShowSignUp={setShowSignUp}
-                        showSignIn={showSignIn}
-                        setShowSignIn={setShowSignIn}
-                        isLoading={isLoading}
-                        setIsLoading={setIsLoading}
-                    />
-                )}
+                {   
+                    !dropDawnListShowing &&
+                    <Hamburger onClick={handleDropDawnList}>
+                        <HiOutlineMenuAlt4 size={40} style={{ fill: "#000000" }}/>
+                    </Hamburger>
+                }
+                {   
+                    dropDawnListShowing &&
+                    <Hamburger onClick={handleDropDawnList}>
+                        <RxCross1 size={40} style={{ fill: "#000000" }}/>
+                    </Hamburger>
+                }
             </Wrapper>
+            <DropDawnList display={dropDawnListDisplay}>
+                <PlaygroundWrapper />
+                <MyDrawWrapper
+                    isLoggedIn={isLoggedIn}
+                >
+                </MyDrawWrapper>
+                {!isLoggedIn && (
+                    <Auth onClick={handleMemberAuth}>
+                        Login/Signup
+                        <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
+                        </ArrowSvgWhite>
+                    </Auth>
+                )}
+                {isLoggedIn && (
+                    <Auth className={isLoggedIn ? "active" : ""} onClick={handleMemberLogout}>
+                        Logout
+                        <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
+                        </ArrowSvgWhite>
+                    </Auth>
+                )}
+            </DropDawnList>
         </Nav>
     );
 };
 
 const MyDrawWrapper = (props) => {
-    const { isLoggedIn, setIsLoggedIn, showSignUp, setShowSignUp } = props;
+    const { isLoggedIn } = props;
     const navigate = useNavigate();
     function handleRedirectToMemberPage() {
         if (isLoggedIn) {
-            navigate('/member/collection');
+            navigate("/member/collection");
         } else {
-            setShowSignUp(true);
+            navigate("/login");
         }
     }
-    return <MyDraw onClick={handleRedirectToMemberPage}>MyDraw</MyDraw>;
+    return (
+        <MyDraw onClick={handleRedirectToMemberPage}>
+            MyDraw
+            <ArrowSvgBlack xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
+            </ArrowSvgBlack>
+        </MyDraw>
+        )
 };
 
 function TitleWrapper() {
     const navigate = useNavigate();
     function wayToHome() {
-        navigate('/');
+        navigate("/");
     }
     return <Title onClick={wayToHome}>DomDomShow</Title>;
+}
+
+function PlaygroundWrapper() {
+    const navigate = useNavigate();
+    function handleNavigateToPlayground() {
+        navigate("/Draw/playground");
+    }
+    return (
+        <Playground onClick = {handleNavigateToPlayground}>
+            Playground
+            <ArrowSvgBlack xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
+            </ArrowSvgBlack>
+        </Playground>
+    )
 }
 
 export default Header;
 
 // style-component
 const Nav = styled.section`
+    position: relative;
+    z-index: 999;
     display: flex;
     justify-content: center;
-    background-color: #ffbb00;
-    padding: 40px 10px 40px 10px;
+    background-color: var(--color-background-yellow);
+    padding: 30px 10px 30px 10px;
     :hover {
-        background-color: #fdf3d7;
+        background-color: #ffea94;
+    }
+    ${media.MEDIA_QUERY_MIN_900} {
+        padding: 20px 10px 20px 10px;
     }
 `;
 
@@ -148,9 +208,14 @@ const NavRight = styled.div`
     display: flex;
     font-weight: 600;
     padding: 10px;
+    ${media.MEDIA_QUERY_MAX_900}{
+        display: none;
+    }
 `;
 
 const MyDraw = styled.div`
+    display: flex;
+    align-items: center;
     color: #000000;
     background-color: #ffffff;
     border: 2px solid #000000;
@@ -164,8 +229,61 @@ const MyDraw = styled.div`
     }
 `;
 
+const ArrowSvgBlack = styled.svg`
+    margin-left: 5px;
+    height: 20px;
+`
+
+export const ArrowSvgWhite = styled(ArrowSvgBlack)`
+    fill: white;
+`
+
 const Auth = styled(MyDraw)`
+    text-align: center;
     color: #ffffff;
-    background-color: #d52400;
+    background-color: var(--color-button-red);
     border: 2px solid #000000;
+    &.active{
+        background-color: var(--color-button-blue);
+    }
 `;
+
+const Playground = styled(MyDraw)`
+
+`
+
+const Hamburger = styled.div`
+    display: none;
+    ${media.MEDIA_QUERY_MAX_900}{
+        display: block;
+        height: 40px;
+        width: 40px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+`
+
+const DropDawnList = styled.div`
+    display: none;
+    ${media.MEDIA_QUERY_MAX_900}{
+        // flex || none
+        display: ${props => props.display || none};
+        flex-direction: column;
+        gap: 15px;
+        position: absolute;
+        top: 104px;
+        right: 0;
+        height: 200px !important;
+        width: 200px !important;
+        padding: 20px;
+        z-index: 900;
+        background-color: #ffffff;
+        border-radius: 10px;
+        border: 2px solid #000000;
+        div{
+            display: flex;
+            justify-content: space-between;
+            margin-right: 0px;
+        }
+    }
+`
