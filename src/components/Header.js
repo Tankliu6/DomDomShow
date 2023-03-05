@@ -1,7 +1,5 @@
 import styled from "styled-components";
 import React, { useRef, useState, useEffect } from "react";
-import SignIn from "./Popup/SignIn";
-import SignUp from "./Popup/SignUp";
 import {
     MEDIA_QUERY_MIN_360,
     MEDIA_QUERY_MIN_768,

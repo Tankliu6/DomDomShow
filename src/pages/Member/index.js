@@ -5,7 +5,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { VscTrash } from "react-icons/vsc";
 import { TbZoomInArea } from "react-icons/tb";
 import { MdFullscreenExit } from "react-icons/md";
-import UserContext from "../../components/userContext";
 import { doc, collection, addDoc, query, where, getDocs, deleteDoc } from "firebase/firestore";
 import { db, auth } from "../../firebase";
 import backgroundImg from "../../img/member-background.png"
@@ -16,6 +15,7 @@ import nothing from "../../img/nothing.gif";
 import nothing2 from "../../img/nothing2.gif";
 import nothing3 from "../../img/nothing3.gif"; 
 import nothing4 from "../../img/nothing4.gif";
+import { AuthContext } from "../../components/AuthContext";
 
 function Member(props) {
     const { isLoading, setIsLoading } = props;
@@ -25,7 +25,7 @@ function Member(props) {
     const [deletingId, setDeletingId] = useState();
     const [zoomInUrl, setZoomInUrl] = useState();
     const gifRef = useRef([nothing, nothing2, nothing3, nothing4])
-    const userId = useContext(UserContext);
+    const userId = useContext(AuthContext);
 
     useEffect(() => {
         if (!userId) {

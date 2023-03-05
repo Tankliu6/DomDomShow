@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import { FaSearchPlus, FaSearchMinus } from "react-icons/fa";
-
+import { useLocation } from "react-router-dom";
 
 
 function Zoom(props){
@@ -14,6 +14,7 @@ function Zoom(props){
     const zoomOutRef = useRef();
     const zoomInRef = useRef();
     const zoomPercentRef = useRef();
+    const location = useLocation();
 
     // zoom-in and zoom-out 停止瀏覽器的預設放大縮小
     document.addEventListener('wheel', function(event) {
@@ -137,7 +138,7 @@ function Zoom(props){
     }
 
     return (
-        <Wrapper>
+        <Wrapper className={location.pathname === "/" ? "welcomePage" : ""}>
             <ZoomOut onPointerOver={handleZoomOutAlt} onPointerOut={handleZoomOutAlt} onClick={handleZoomOut}>
                 <FaSearchMinus />
                 <ZoomOutAlt ref={zoomOutRef}>Zoom out</ZoomOutAlt>
@@ -199,6 +200,10 @@ export { handleWheel };
 // styled-components
 const Wrapper = styled.div`
     display: flex;
+    position: relative;
+    &.welcomePage {
+        display: none;
+    }
 `
 
 const Percent = styled.div`

@@ -14,7 +14,9 @@ import svgbg from "../../img/svgbg.jpg"
 import { handleRemoveNode } from "./tool/Remove";
 import { BsNodePlusFill } from "react-icons/bs";
 import { db, auth } from "../../firebase";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import media from "../../global/constant/media";
+import welcomePageInitialData from "../Draw/utils/utils";
 
 function SvgCanvas(props) {
     const { isLoading, setIsLoading } = props;
@@ -53,11 +55,18 @@ function SvgCanvas(props) {
     const [useNodeToolSideBar, setUseNodeToolSideBar] = useState(false);
     const [useCommentBoard, setUseCommentBoard] = useState(false);
     const location = useLocation();
-    const [pathname, setPathname] = useState(location.pathname.split("/")[2]);
 
     // 畫布初始化
     useEffect(() => {
         console.log("fetch new data in draw-page")
+        if (location.pathname === "/") {
+            setTitle("Try it !");
+            setSVGSize({ width: 721, height: 405 });
+            setViewBoxOrigin({ x: 73, y: 71 });
+            setCircles(welcomePageInitialData.circles);
+            setLines(welcomePageInitialData.lines);
+            resetSvgCanvas();
+        }
         if (location.pathname.split("/")[2] === "playground") {
             setTitle("Playground can't save !");
             setSVGSize({ width: 960, height: 540 });
@@ -78,6 +87,7 @@ function SvgCanvas(props) {
                     setViewBoxOrigin(data.viewBoxOrigin);
                     setCircles(data.circles);
                     setLines(data.lines);
+                    console.table("circles" + JSON.stringify(data.circles), "lines" + JSON.stringify(data.lines));
                 }
             } catch (e) {
                 console.log(e);
@@ -86,7 +96,7 @@ function SvgCanvas(props) {
             }
         }
         fetchData();
-    }, [pathname])
+    }, [location.pathname])
 
     function handleSVGCoordinateTransfer(props){
         const { e, delta } = props
@@ -820,7 +830,7 @@ function SvgCanvas(props) {
     }
 
     return (
-        <Main ref={pageRef}>
+        <Main ref={pageRef} className={location.pathname === "/" ? "welcomePage" : ""}>
             <TitleBoard
                 viewBoxOrigin={viewBoxOrigin}
                 SVGSize={SVGSize}
@@ -828,8 +838,6 @@ function SvgCanvas(props) {
                 lines={lines}
                 title={title}
                 setTitle={setTitle}
-                svgRef={svgRef}
-                pageRef={pageRef}
             />
             <Aside
                 svgRef={svgRef} 
@@ -850,6 +858,7 @@ function SvgCanvas(props) {
                 setLineIsDragging={setLineIsDragging}
             />
             <Svg
+                className={location.pathname === "/" ? "welcomePage" : ""}
                 tabIndex={-1}
                 id="svg"
                 ref={svgRef}
@@ -1259,6 +1268,14 @@ export default SvgCanvas;
 // style-components
 const Main = styled.div`
     display: flex;
+    &.welcomePage {
+        width: 612px;
+        justify-content: center;
+        ${media.MEDIA_QUERY_MAX_768} {
+            width: 100%;
+            aspect-ratio: 16/9;
+        }
+    }
 `;
 
 const Svg = styled.svg`
@@ -1270,9 +1287,12 @@ const Svg = styled.svg`
     outline: none;
     background-image: url(${svgbg});
     background-position: center;
-    background-position: cover;
-    :active{
+    background-size: cover;
+    :active {
         cursor: ${props => props.panMode.grabbing};
+    }
+    &.welcomePage {
+        height: unset;
     }
 `;
 

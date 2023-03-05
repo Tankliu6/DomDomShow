@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { v4 as uuid } from "uuid";
 import { BiChalkboard } from "react-icons/bi";
 import { BsArrowUpRight } from "react-icons/bs";
+import { useLocation } from "react-router-dom";
 import Remove from "./Remove";
 
 function Aside(props){
@@ -26,6 +27,7 @@ function Aside(props){
     const [hintForAddCircle, setHintForAddCircle] = useState(false);
     const [hintForRemove, setHintForRemove] = useState(false);
     const [hintForAddLine, setHintForAddLine] = useState(false);
+    const location = useLocation();
 
     function handleAddNodeDown(e){
         setNodeIsDragging(true);
@@ -131,7 +133,7 @@ function Aside(props){
     }
 
     return (
-        <Container>
+        <Container className={location.pathname === "/" ? "welcomePage" : ""}>
             <Header>
                 <BiChalkboard size={25} fill="#efe1e1"></BiChalkboard>    
             </Header>
@@ -199,6 +201,9 @@ const Container = styled.div`
     padding-bottom: 10px;
     background-color: var(--color-tool-background);
     border-radius: 10px;
+    &.welcomePage {
+        display: none;
+    }
 `
 
 const Wrapper = styled.div`

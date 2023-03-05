@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import styled from "styled-components";
 import { MdOutlinePanTool } from "react-icons/md";
+import { useLocation } from "react-router-dom";
 
 
 
@@ -16,6 +17,7 @@ function PanMode(props) {
         fill: "#4a5475"
     });
     const altRef = useRef();
+    const location = useLocation();
 
     function handleSvgPanModeSwitch(){
         if (svgPanMode.grab === "grab"){
@@ -82,7 +84,7 @@ function PanMode(props) {
 
 
     return(
-        <PanContainer onPointerOver={handleAlt} onPointerOut={handleAlt} onClick={handleSvgPanModeSwitch} theme={theme}>
+        <PanContainer className={location.pathname === "/" ? "welcomePage" : ""} onPointerOver={handleAlt} onPointerOut={handleAlt} onClick={handleSvgPanModeSwitch} theme={theme}>
             <Alt ref={altRef}>
                 Pan mode 
                 <P>Space</P>
@@ -109,6 +111,9 @@ const PanContainer = styled.div`
     box-shadow: 0 0 5px #cccccc;
     border-radius: 5px;
     cursor: pointer;
+    &.welcomePage {
+        display: none;
+    }
 `
 
 const Pan = styled(MdOutlinePanTool)`

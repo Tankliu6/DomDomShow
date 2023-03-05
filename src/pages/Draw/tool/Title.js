@@ -9,11 +9,12 @@ import { useLocation } from "react-router-dom";
 import html2canvas from "html2canvas";
 
 function TitleBoard(props) {
-    const { viewBoxOrigin, SVGSize, circles, lines, title, setTitle, svgRef, pageRef } = props
+    const { viewBoxOrigin, SVGSize, circles, lines, title, setTitle } = props
     const [isSaving, setIsSaving] = useState(false);
     const [titleActive, setTitleActive] = useState(false);
     const [saved, setSaved] = useState(false);
     const location= useLocation();
+    const isWelcomePage = location.pathname;
     const isPlayground = location.pathname.split("/")[2];
     const canvasId = location.pathname.split("/")[3];
 
@@ -64,7 +65,7 @@ function TitleBoard(props) {
     }, [title, viewBoxOrigin, SVGSize, circles, lines])
 
     return (
-        <Wrapper>
+        <Wrapper className={isWelcomePage === "/" ? "welcomePage" : ""}>
             <Title
                 value={title} 
                 className={titleActive ? "active" : ""} 
@@ -73,7 +74,7 @@ function TitleBoard(props) {
                 onClick={() => setTitleActive(!titleActive)}
             />
             <Line />
-            { isPlayground === "playground" ? ""
+            { isPlayground === "playground" || isWelcomePage === "/" ? ""
                 :
                 <Save onClick={handleSave}>
                     <RefreshIcon className={isSaving ? "active" : ""} size={20} fill="#ffffff" />
@@ -99,6 +100,9 @@ const Wrapper = styled.div`
     padding: 10px;
     border-radius: 10px;
     background-color: var(--color-tool-background);
+    &.welcomePage{
+        display: none;
+    }
 `
 
 const Title = styled.input`

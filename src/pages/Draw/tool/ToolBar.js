@@ -6,6 +6,7 @@ import { GiPlainCircle } from "react-icons/gi";
 import { FaBold, FaTools } from "react-icons/fa";
 import { AiFillPushpin } from "react-icons/ai";
 import { BiMessageDetail } from "react-icons/bi";
+import { useLocation } from "react-router-dom";
 
 function ToolBar(props){
     const { 
@@ -21,7 +22,7 @@ function ToolBar(props){
         useCirclePackage, 
         setUseCirclePackage} = props;
     const [colorPickerActive, setColorPickerActive] = useState(false);
-
+    const location = useLocation();
 
     function handleIsTexting(e){
         e.stopPropagation();
@@ -113,7 +114,7 @@ function ToolBar(props){
                     </FontWeight>
                     <Line />
                     <ColorPickerWrapper className={colorPickerActive ? "active" : ""} onPointerDown={e => e.stopPropagation()}>
-                        <ColorPicker onChangeComplete={handleNodeColor} />
+                        <ColorPicker onChangeComplete={handleNodeColor} circleSize={16} circleSpacing={6} colors={["White", "Gray", "Blue", "Indigo", "Purple", "Pink", "Green", "Brown", "Crimson", "Red", "Orange", "Yellow"]} />
                     </ColorPickerWrapper>
                     <Color onPointerDown={handleColorPickerActive}>
                         <GiPlainCircle size={20} fill={selectedCircle.fill || "#ffffff"} stroke="#000000" strokeWidth="10"></GiPlainCircle>
@@ -124,7 +125,7 @@ function ToolBar(props){
                         <BiMessageDetail size={20} fill="#ffffff"></BiMessageDetail>
                     </Comment>
                     <Line />
-                    <Clip onPointerDown={handleUseToolSideBar}>
+                    <Clip className={location.pathname === "/" ? "welcomePage" : ""} onPointerDown={handleUseToolSideBar}>
                         <FaTools fill="#efe1e1"></FaTools>
                     </Clip>
                 </Wrapper>   
@@ -148,7 +149,7 @@ function ToolBar(props){
                     </FontWeight>
                     <Line className={useNodeToolSideBar ? "sideBarActive" : ""}/>
                     <ColorPickerWrapper  className={`${colorPickerActive ? "active" : ""} ${useNodeToolSideBar ? "sideBarActive" : ""}`} onPointerDown={e => e.stopPropagation()}>
-                        <ColorPicker className={useNodeToolSideBar ? "sideBarActive" : ""} onChangeComplete={handleNodeColor}/>
+                        <ColorPicker className={useNodeToolSideBar ? "sideBarActive" : ""} onChangeComplete={handleNodeColor} circleSize={16} circleSpacing={6} colors={["White", "Gray", "Blue", "Indigo", "Purple", "Pink", "Green", "Brown", "Crimson", "Red", "Orange", "Yellow"]}/>
                     </ColorPickerWrapper>
                     <Color onPointerDown={handleColorPickerActive}>
                         <GiPlainCircle size={25} fill={selectedCircle.fill || "#ffffff"} stroke="#000000" strokeWidth="10"></GiPlainCircle>
@@ -159,7 +160,7 @@ function ToolBar(props){
                         <BiMessageDetail size={20} fill="#ffffff"></BiMessageDetail>
                     </Comment>
                     <Line className={useNodeToolSideBar ? "sideBarActive" : ""}/>
-                    <Clip onPointerDown={handleUseToolSideBar}>
+                    <Clip className={location.pathname === "/" ? "welcomePage" : ""} onPointerDown={handleUseToolSideBar}>
                         <AiFillPushpin size={25} fill="#efe1e1"></AiFillPushpin>
                     </Clip>
                 </Wrapper> 
@@ -314,21 +315,23 @@ const ColorPickerWrapper = styled.div`
 `
 
 const ColorPicker = styled(CirclePicker)`
+    flex-flow: column wrap;
     position: absolute;
     box-sizing: border-box;
     align-items: center;
-    width: 270px !important;
-    bottom: 50px;
-    right: 0;
-    padding: 10px 0 0 15px;
+    width: 100px !important;
+    height: 80px;
+    bottom: 40px;
+    right: 50px;
+    padding: 10px 0 0 8px;
     margin: 0 !important;
     border-radius: 5px;
     background-color: var(--color-tool-background);
     &.sideBarActive{
-        width: 210px !important;
-        bottom: -31px;
+        width: 120px !important;
+        bottom: -51px;
         right: unset;
-        padding: 10px 0 0 25px;
+        padding-top: 10px;
         margin-left: 40px !important;
     }
 `
@@ -368,7 +371,10 @@ const Clip = styled.div`
     height: 20px;
     width: 36px;
     cursor: pointer;
-    :hover{
+    :hover {
         background-color: #000000;
+    }
+    &.welcomePage {
+        display: none;
     }
 `
