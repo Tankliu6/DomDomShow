@@ -118,14 +118,11 @@ function Member(props) {
         const selectedCard = historyCards.find(card => 
             card.id === e.target.id
         )
-        console.log(selectedCard.previewUrl);
         setZoomInUrl(selectedCard.previewUrl);
-        console.log("zoom in")
     }
 
     function handlePopUp(e){
         e.stopPropagation();
-        console.log(zoomInUrl);
     }
 
     return (

@@ -91,9 +91,7 @@ function Aside(props){
         //  2. 計算對應回去的 SVG 座標值
         const startSVGPoint = svgPoint.matrixTransform(CTM);
 
-        console.log(canAddNewLine)
         if (canAddNewLine) {
-            console.log("add")
             const newLine = {
                 id: uuid(),
                 // 開始節點 id
@@ -114,7 +112,6 @@ function Aside(props){
             setFocusingLine(newLine);
             setLines((prev) => [...prev, newLine]);
             setCanAddNewLine(false);
-            console.log(newLine)
         }
     }
 

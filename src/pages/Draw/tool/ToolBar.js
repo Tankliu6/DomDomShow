@@ -74,7 +74,6 @@ function ToolBar(props){
 
     function handleNodeFontWeight(e){
         e.stopPropagation();
-        console.log(selectedCircle.fontWeight)
         if (selectedCircle.fontWeight === "initial") {
             selectedCircle.fontWeight = "bold";
             setCircles((prev) => [...prev])

@@ -151,7 +151,6 @@ function SvgCanvas(props) {
 
         const targetCircleId = e.target.id; // 立即於此點擊事件中找到被點擊的 id, 因為 state 不會立即改變
         setNodeIsDragging(true);
-        console.log(targetCircleId, selectedCircle)
 
         setUseCirclePackage(false);
 
@@ -178,7 +177,6 @@ function SvgCanvas(props) {
         if (selectedCircle.id === "default") return
         // 第一次移動節點動態調整曲線點
         if (nodeIsDragging && selectedCircle.firstMove) {
-            console.log("helo")
             // 設定新的 circle 於 SVG 的座標
             selectedCircle.cx -= delta.dx
             selectedCircle.cy -= delta.dy 
@@ -195,7 +193,6 @@ function SvgCanvas(props) {
             })
             setLines((prev) => [...prev])
         } else if (nodeIsDragging) {
-            console.log("helo222")
             // 設定新的 circle 於 SVG 的座標
             selectedCircle.cx -= delta.dx
             selectedCircle.cy -= delta.dy 
@@ -225,7 +222,6 @@ function SvgCanvas(props) {
         
     function handleCircleMouseUp(e) {
         e.stopPropagation();
-        console.log("leave");
         selectedCircle.firstMove = false;
         setUseCirclePackage(true);
         setNodeIsDragging(false);
@@ -412,8 +408,6 @@ function SvgCanvas(props) {
         e.stopPropagation();
         // 節點左半邊
         if (transformIsDragging && leftRightRef.current) {
-            console.log(lineStartAtNorthRef, lineStartAtEastRef, lineStartAtSouthRef, lineStartAtWestRef,lineEndAtNorthRef, lineEndAtEastRef, lineEndAtSouthRef, lineEndAtWestRef)
-            // console.log(selectedLines, selectedLines2)
             let delta = {
                 dx: "",
                 dy: ""
@@ -429,38 +423,30 @@ function SvgCanvas(props) {
             // 設定該節點的線段同步移動
             // 上
             lineStartAtNorthRef.current.forEach(line => {
-                console.log("N1")
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })
             lineEndAtNorthRef.current.forEach(line => {
-                console.log("N1-2")
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })    
             // 右
             lineStartAtEastRef.current.forEach(line => {
-                console.log("E1")
                 line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;                   
             })
             lineEndAtEastRef.current.forEach(line => {
-                console.log("E1-2")
                 line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;                   
             })
             // 下
             lineStartAtSouthRef.current.forEach(line => {
-                console.log("S1")
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
             lineEndAtSouthRef.current.forEach(line => {
-                console.log("S1-2")
                 line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;  
             })
             // 左
             lineStartAtWestRef.current.forEach(line => {
-                console.log("W1")
                 line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;  
             })
             lineEndAtWestRef.current.forEach(line => {
-                console.log("W1-2")
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;   
             })
             setLines((prev) => [...prev])
@@ -481,38 +467,30 @@ function SvgCanvas(props) {
             setCircles((prev) => [...prev])
             // 上
             lineStartAtNorthRef.current.forEach(line => {
-                console.log("N1")
                 line.y1 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })
             lineEndAtNorthRef.current.forEach(line => {
-                console.log("N1-2")
                 line.y2 = selectedCircle.cy - selectedCircle.r - delta.dx;
             })    
             // 右
             lineStartAtEastRef.current.forEach(line => {
-                console.log("E1")
                 line.x1 = selectedCircle.cx + selectedCircle.r + delta.dx;                 
             })
             lineEndAtEastRef.current.forEach(line => {
-                console.log("E1-2")
                 line.x2 = selectedCircle.cx + selectedCircle.r + delta.dx;                 
             })
             // 下
             lineStartAtSouthRef.current.forEach(line => {
-                console.log("S1")
                 line.y1 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
             lineEndAtSouthRef.current.forEach(line => {
-                console.log("S1-2")
                 line.y2 = selectedCircle.cy + selectedCircle.r + delta.dx;    
             })
             // 左
             lineStartAtWestRef.current.forEach(line => {
-                console.log("W1")
                 line.x1 = selectedCircle.cx - selectedCircle.r - delta.dx;   
             })
             lineEndAtWestRef.current.forEach(line => {
-                console.log("W1-2")
                 line.x2 = selectedCircle.cx - selectedCircle.r - delta.dx;  
             })            
             setLines((prev) => [...prev])  
@@ -533,7 +511,6 @@ function SvgCanvas(props) {
         setLineIsDragging(true);
         setUseCirclePackage(false);
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0}); // 關閉圓形節點的工具組
-        console.log(focusingLine)
     }
 
     function handleLineMove(e){
@@ -658,7 +635,6 @@ function SvgCanvas(props) {
 
     function handleLineBezierCurveDown(e){
         e.stopPropagation();
-        console.log(focusingLine)
         bezierCurvePointIsDraggingRef.current = { isDragging: true, point: e.target.id };
         setUseCirclePackage(false);
     }
@@ -822,7 +798,6 @@ function SvgCanvas(props) {
 
     function handleNodeContent(e){
         nodeTitleRef.current = e.target.value;
-        console.log(nodeTitleRef, e.currentTarget.id)
         const nodeContentId = e.currentTarget.id.split("nodeContent-")[1];
         const selectedCircle = circles.find(circle => circle.id === nodeContentId);
         selectedCircle.title = e.target.value;
@@ -887,7 +862,6 @@ function SvgCanvas(props) {
                 onPointerDown={(e) => {
                     handleSvgCanvasMouseDown();
                     resetSvgCanvas();
-                    console.log("reset")
                 }}
                 onPointerMove={(e) => {
                     handleSvgCanvasMove(e);
