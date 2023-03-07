@@ -11,24 +11,25 @@ const AuthContextProvider = (props) => {
     const location = useLocation();
 
     useEffect(() => {
-        if (isLoading) return;
         setIsLoading(true);
-        auth.onAuthStateChanged(authUser => {
-            try {
-                setUser(authUser.uid);
-                setIsLoggedIn(true);
-            } catch (e) {
-                setIsLoggedIn(false);
-                if (location.pathname.split("/")[2] === "playground" || location.pathname.split("/")[1] === "login") {
-                    console.log("No Auth-ok-page")
-                } else {
-                    console.log("AuthContext Not Signed-in user" + e);
-                    navigate("/");
+        if (!isLoading) {
+            auth.onAuthStateChanged(authUser => {
+                try {
+                    setUser(authUser.uid);
+                    setIsLoggedIn(true);
+                } catch (e) {
+                    setIsLoggedIn(false);
+                    if (location.pathname.split("/")[2] === "playground" || location.pathname.split("/")[1] === "login") {
+                        console.log("No Auth-ok-page")
+                    } else {
+                        console.log("AuthContext Not Signed-in user" + e);
+                        navigate("/");
+                    }
+                } finally {
+                    setIsLoading(false);
                 }
-            } finally {
-                setIsLoading(false);
-            }
-        });
+            });    
+        }
     }, [])
 
     return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>

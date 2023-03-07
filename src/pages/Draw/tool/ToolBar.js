@@ -1,17 +1,16 @@
-import React, {useRef, useState} from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-import { HiMinusSm, HiPlusSm, HiOutlinePaperClip } from "react-icons/hi";
+import { useLocation } from "react-router-dom";
 import { CirclePicker } from "react-color";
+import { HiMinusSm, HiPlusSm } from "react-icons/hi";
 import { GiPlainCircle } from "react-icons/gi";
 import { FaBold, FaTools } from "react-icons/fa";
 import { AiFillPushpin } from "react-icons/ai";
 import { BiMessageDetail } from "react-icons/bi";
-import { useLocation } from "react-router-dom";
 
 function ToolBar(props){
     const { 
         selectedCircle, 
-        circles, 
         setCircles,
         useNodeToolSideBar, 
         setUseNodeToolSideBar, 

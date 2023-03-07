@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import styled from "styled-components";
+import PopUp from "../../components/Popup/PopUp";
 import SignIn from "../../components/Popup/SignIn";
 import SignUp from "../../components/Popup/SignUp";
+import media from "../../global/constant/media";
 import backgroundImg from "../../img/signinup-background-01.png";
-import handshake from "../../img/handshake.png";
-import { MEDIA_QUERY_MAX_900 } from "../../global/constant/media";
-import PopUp from "../../components/Popup/PopUp";
+import handshakeImg from "../../img/handshake.png";
 
 function SingInUp(props){
     const {
@@ -48,7 +48,7 @@ function SingInUp(props){
                     />
                 )}
                 <ImgWrapper>
-                    <HandShake src={handshake} />
+                    <HandShake src={handshakeImg} />
                     <PopUp 
                         showPopUp={showPopUp} 
                         popUpTitleRef={popUpTitleRef}
@@ -71,7 +71,7 @@ const Wrapper = styled.div`
     background-position: center;
     background-size: cover;
     width: 100%;
-    min-height: calc(100vh - 104px);
+    min-height: calc(100vh - 114px);
 `
 
 const Content = styled.div`
@@ -79,7 +79,7 @@ const Content = styled.div`
     justify-content: center;
     align-items: center;
     gap: 30px;
-    ${MEDIA_QUERY_MAX_900}{
+    ${media.MEDIA_QUERY_MAX_900}{
         flex-direction: column;
     }
 `

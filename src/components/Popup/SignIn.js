@@ -6,25 +6,20 @@ import {
     Password,
     Submit,
     Notice,
-    CloseButton,
     Hint,
     Playground
 } from "./style/sharedStyle";
-import Close from "../../img/close-btn.png";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 const SignIn = (props) => {
     const navigate = useNavigate();
     const {
-        isLoggedIn,
         setIsLoggedIn,
-        switchDialog,
         setSwitchDialog,
         memberAuthIsLoading,
         setMemberAuthIsLoading,
-        showPopUp, 
         setShowPopUp,
         popUpTitleRef,
         setShowLayer

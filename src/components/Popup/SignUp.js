@@ -6,28 +6,23 @@ import {
     Password,
     Submit,
     Notice,
-    CloseButton,
     Hint,
     Playground
 } from "./style/sharedStyle";
-import Close from "../../img/close-btn.png";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 
 const SignUp = (props) => {
     const navigate = useNavigate();
     const {
-        switchDialog,
         setSwitchDialog,
         memberAuthIsLoading,
         setMemberAuthIsLoading,
-        showPopUp, 
         setShowPopUp,
         popUpTitleRef,
         setShowLayer
     } = props;
-    // const [isLoading, setIsLoading] = useState(false);
     const email = useRef();
     const password = useRef();
     const [submitOpacity, setSubmitOpacity] = useState();

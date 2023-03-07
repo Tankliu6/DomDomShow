@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import Remove from "./Remove";
 import { v4 as uuid } from "uuid";
+import { useLocation } from "react-router-dom";
 import { BiChalkboard } from "react-icons/bi";
 import { BsArrowUpRight } from "react-icons/bs";
-import { useLocation } from "react-router-dom";
-import Remove from "./Remove";
 
 function Aside(props){
     const {
@@ -75,7 +75,7 @@ function Aside(props){
         setCanAddNewLine(true);
         setCanAddNewNode(false);
         setLineIsDragging(true);
-        setSelectedLines([]); // 清除上一個node可移動的線段
+        setSelectedLines([]);
         setSelectedLines2([]);
         setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
         setUseCirclePackage(false);
@@ -180,11 +180,10 @@ function Aside(props){
 
 export default Aside;
 
-
 // styled-components
 const Container = styled.div`
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
+    -webkit-user-select: none;
+    -ms-user-select: none;
     user-select: none;
     position: absolute;
     left: 20px;
@@ -266,8 +265,8 @@ const Line = styled.div`
 `
 
 const Alt = styled.div`
-    -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10+ */
+    -webkit-user-select: none;
+    -ms-user-select: none;
     user-select: none;
     position: absolute;
     bottom: 120px;
