@@ -1,14 +1,7 @@
 import styled from "styled-components";
-import Close from "../../../img/close-btn.png";
 
 // style-components
 export const Wrapper = styled.div`
-    /* position: fixed;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    margin: auto; */
     z-index: 999;
     display: flex;
     flex-direction: column;

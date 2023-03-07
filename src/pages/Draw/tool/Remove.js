@@ -1,7 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import { button } from "../../../global/constant/style";
-import { TbTrashOff } from "react-icons/tb";
 import { FaTrash } from "react-icons/fa";
 
 // 刪除節點與由此節點出發的線段

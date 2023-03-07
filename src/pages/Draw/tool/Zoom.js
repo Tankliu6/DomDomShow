@@ -1,7 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import styled from "styled-components";
-import { FaSearchPlus, FaSearchMinus } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
+import { FaSearchPlus, FaSearchMinus } from "react-icons/fa";
 
 
 function Zoom(props){
@@ -10,11 +10,11 @@ function Zoom(props){
         setSVGSize, 
         viewBoxOrigin, 
         setViewBoxOrigin } = props;
-    const zoomPercent = Math.floor((960 / SVGSize.width) * 100);
     const zoomOutRef = useRef();
     const zoomInRef = useRef();
     const zoomPercentRef = useRef();
     const location = useLocation();
+    const zoomPercent = Math.floor((960 / SVGSize.width) * 100);
 
     // zoom-in and zoom-out 停止瀏覽器的預設放大縮小
     document.addEventListener('wheel', function(event) {
@@ -34,7 +34,7 @@ function Zoom(props){
     function handleZoomOut(e){
         const { x, y } = viewBoxOrigin;
         const { width, height } = SVGSize;
-        let newWidth = width * 1.1; // zoom 最大 200% 最小 50%
+        let newWidth = width * 1.1;
         let newHeight = height * 1.1;
         let offsetX = (width - newWidth) * 0.5;
         let offsetY = (height - newHeight) * 0.5;
@@ -77,7 +77,7 @@ function Zoom(props){
     function handleZoomIn(e){
         const { x, y } = viewBoxOrigin;
         const { width, height } = SVGSize;
-        let newWidth = width * 1/1.1; // zoom 最大 200% 最小 50%
+        let newWidth = width * 1/1.1;
         let newHeight = height * 1/1.1;
         let offsetX = (width - newWidth) * 0.5;
         let offsetY = (height - newHeight) * 0.5;
@@ -167,7 +167,7 @@ function handleWheel(e, svgRef, viewBoxOrigin, SVGSize, setSVGSize, setViewBoxOr
         const delta = e.deltaY > 0 ? 1.1 : 1/1.1;
         const mouseX = e.clientX;
         const mouseY = e.clientY;
-        let newWidth = width * delta; // zoom 最大 200% 最小 50%
+        let newWidth = width * delta;
         let newHeight = height * delta;
         let offsetX = (width - newWidth) * (mouseX / svgRef.current.clientWidth);
         let offsetY = (height - newHeight) * (mouseY / svgRef.current.clientHeight);
@@ -191,8 +191,6 @@ function handleWheel(e, svgRef, viewBoxOrigin, SVGSize, setSVGSize, setViewBoxOr
         }
     }
 } 
-
-
 
 export default Zoom;
 export { handleWheel }; 

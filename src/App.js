@@ -1,11 +1,11 @@
+import React, { useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { AuthContextProvider } from "./components/AuthContext";
 import Member from "./pages/Member";
 import Welcome from "./pages/Welcome";
 import Header from "./components/Header";
 import SvgCanvas from "./pages/Draw/index";
 import SingInUp from "./pages/SignInUp";
-import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
-import { AuthContextProvider } from "./components/AuthContext";
 import Loading from "./components/Loading";
 import Layer from "./components/Layer";
 
@@ -17,7 +17,7 @@ const App = () => {
     return (
         <AuthContextProvider isLoading={isLoading} setIsLoading={setIsLoading} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}>
             <Layer showLayer={showLayer}/>
-            <Loading isLoading={isLoading} setIsLoading={setIsLoading} />
+            <Loading isLoading={isLoading} />
                 <Header
                     isLoggedIn={isLoggedIn}
                     setIsLoggedIn={setIsLoggedIn}

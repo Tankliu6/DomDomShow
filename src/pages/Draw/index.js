@@ -1,8 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
+import styled from "styled-components";
+import { useLocation } from "react-router-dom";
+import { db } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
 import ContentEditable from "react-contenteditable";
 import { v4 as uuid } from "uuid";
-import styled from "styled-components";
-import { doc, getDoc, getDocs } from "firebase/firestore";
 import PanMode from "./tool/PanMode";
 import Zoom, { handleWheel } from "./tool/Zoom";
 import Marker from "./svg/Marker";
@@ -10,13 +12,11 @@ import Aside from "./tool/Aside";
 import Message from "./tool/Message";
 import ToolBar from "./tool/ToolBar";
 import TitleBoard from "./tool/Title";
-import svgbg from "../../img/svgbg.jpg"
 import { handleRemoveNode } from "./tool/Remove";
-import { BsNodePlusFill } from "react-icons/bs";
-import { db, auth } from "../../firebase";
-import { useLocation, useParams } from "react-router-dom";
 import media from "../../global/constant/media";
 import welcomePageInitialData from "../Draw/utils/utils";
+import svgbg from "../../img/svgbg.jpg"
+import { BsNodePlusFill } from "react-icons/bs";
 
 function SvgCanvas(props) {
     const { isLoading, setIsLoading } = props;
@@ -40,7 +40,7 @@ function SvgCanvas(props) {
     const [selectedCircle, setSelectedCircle] = useState({id: "default", cx: 0, cy: 0, r: 0, title: "", content: ""});
     const [nodeIsDragging, setNodeIsDragging] = useState(false);
     const [viewBoxOrigin, setViewBoxOrigin] = useState({ x: 0, y: 0 })
-    const [SVGSize, setSVGSize] = useState({ width: 960, height: 540 }) // viewbox 0 0 "width" "height"
+    const [SVGSize, setSVGSize] = useState({ width: 960, height: 540 })
     const [svgIsDragging, setSvgIsDragging] = useState(false);
     const [svgPanMode, setSvgPanMode] = useState({grab: "default", grabbing: "default"});
     const [lines, setLines] = useState([]);
@@ -87,7 +87,6 @@ function SvgCanvas(props) {
                     setViewBoxOrigin(data.viewBoxOrigin);
                     setCircles(data.circles);
                     setLines(data.lines);
-                    console.table("circles" + JSON.stringify(data.circles), "lines" + JSON.stringify(data.lines));
                 }
             } catch (e) {
                 console.log(e);
@@ -121,7 +120,7 @@ function SvgCanvas(props) {
         delta.dy = startSVGPoint.y - moveToSVGPoint.y;      
     }
 
-    function handleSvgCanvasMouseDown(e){
+    function handleSvgCanvasMouseDown(){
         svgPanMode.grab === "grab" ? svgIsDraggingRef.current = true : null;
     }
     
@@ -149,7 +148,7 @@ function SvgCanvas(props) {
 
         setUseCommentBoard(false);
 
-        const targetCircleId = e.target.id; // 立即於此點擊事件中找到被點擊的 id, 因為 state 不會立即改變
+        const targetCircleId = e.target.id; // 立即於此點擊事件中找到被點擊的 id
         setNodeIsDragging(true);
 
         setUseCirclePackage(false);
@@ -229,7 +228,7 @@ function SvgCanvas(props) {
     }
 
     // 點擊SVG畫布解除選擇節點
-    function resetSvgCanvas(e){
+    function resetSvgCanvas(){
         setUseCommentBoard(false);
         setUseCirclePackage(false);
         setIsTexting(false);
@@ -295,11 +294,9 @@ function SvgCanvas(props) {
         if (svgX > selectedCircle.cx + selectedCircle.r) {
             // 右邊
             newLine.x1 = selectedCircle.cx + selectedCircle.r;
-            // newLine.y1 = selectedCircle.cy;
             newLine.cpx1 = selectedCircle.cx + selectedCircle.r + 3.5; // 線段 1/4
             newLine.cpx2 = selectedCircle.cx + selectedCircle.r + 10.5;// 線段 3/4
             newLine.x2 = selectedCircle.cx + selectedCircle.r + 14;
-            // newLine.y2 = selectedCircle.cy;
             handleAddEndPointCircle({
                 id: newLine.endNodeId,
                 x2: selectedCircle.cx + selectedCircle.r + 40,
@@ -310,9 +307,7 @@ function SvgCanvas(props) {
             newLine.x1 = selectedCircle.cx - selectedCircle.r;
             newLine.cpx1 = selectedCircle.cx - selectedCircle.r - 3.5;
             newLine.cpx2 = selectedCircle.cx - selectedCircle.r - 10.5;
-            // newLine.y1 = selectedCircle.cy;
             newLine.x2 = selectedCircle.cx - selectedCircle.r - 14;
-            // newLine.y2 = selectedCircle.cy;
             handleAddEndPointCircle({
                 id: newLine.endNodeId,
                 x2: selectedCircle.cx - selectedCircle.r - 40,
@@ -320,11 +315,9 @@ function SvgCanvas(props) {
             }) 
         } else if (svgY > selectedCircle.cy + selectedCircle.r) {
             // 下
-            // newLine.x1 = selectedCircle.cx;
             newLine.y1 = selectedCircle.cy + selectedCircle.r;
             newLine.cpy1 = selectedCircle.cy + selectedCircle.r + 3.5;
             newLine.cpy2 = selectedCircle.cy + selectedCircle.r + 10.5;
-            // newLine.x2 = selectedCircle.cx;
             newLine.y2 = selectedCircle.cy + selectedCircle.r + 14;
             handleAddEndPointCircle({
                 id: newLine.endNodeId,
@@ -333,11 +326,9 @@ function SvgCanvas(props) {
             }) 
         } else if (svgY < selectedCircle.cy - selectedCircle.r) {
             // 上
-            // newLine.x1 = selectedCircle.cx;
             newLine.y1 = selectedCircle.cy - selectedCircle.r;
             newLine.cpy1 = selectedCircle.cy - selectedCircle.r - 3.5;
             newLine.cpy2 = selectedCircle.cy - selectedCircle.r - 10.5;
-            // newLine.x2 = selectedCircle.cx;
             newLine.y2 = selectedCircle.cy - selectedCircle.r - 14;
             handleAddEndPointCircle({
                 id: newLine.endNodeId,
@@ -397,13 +388,6 @@ function SvgCanvas(props) {
         lineEndAtWestRef.current = [...lineEndAtWest]
     }
 
-    function handleNodeLineStraight(line, delta){
-        line.cpx1 = (line.x1 + line.x2 - delta.dx) / 2;
-        line.cpy1 = (line.y1 + line.y2 - delta.dy) / 2;
-        line.cpx2 = (line.x1 + line.x2 - delta.dx) / 2;
-        line.cpy2 = (line.y1 + line.y2 - delta.dy) / 2;      
-    }
-  
     function handleTransformMove(e){
         e.stopPropagation();
         // 節點左半邊
@@ -510,7 +494,7 @@ function SvgCanvas(props) {
         setFocusingLine(focusingLine);
         setLineIsDragging(true);
         setUseCirclePackage(false);
-        setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0}); // 關閉圓形節點的工具組
+        setSelectedCircle({id: "default", cx: 0, cy: 0, r: 0});
     }
 
     function handleLineMove(e){
@@ -532,7 +516,7 @@ function SvgCanvas(props) {
             focusingLine.cpx2 -= delta.dx;
             focusingLine.cpy2 -= delta.dy;
 
-            let startNodeId = ""; // 解決 hook 非同步更新使得後執行的 foundEndCircle 蓋掉先執行 foundStartCircle 賦予的 startNodeId 值
+            let startNodeId = ""; // hook 非同步更新使得後執行的 foundEndCircle 蓋掉先執行 foundStartCircle 賦予的 startNodeId 值
             const foundStartCircle = circles.some((circle) => {
                 const lineToCircleBoundaryDistance = (( focusingLine.x1 - circle.cx )** 2 + ( focusingLine.y1 - circle.cy )** 2 ) ** (1/2);
                 if (lineToCircleBoundaryDistance < circle.r) {
@@ -671,7 +655,7 @@ function SvgCanvas(props) {
             focusingLine.cpy1 -= delta.dy;
             focusingLine.cpx2 -= delta.dx;
             focusingLine.cpy2 -= delta.dy;
-            handleLineChangeNode(true); // true 更改 startNodeId
+            handleLineChangeNode(true); // true 時更改 startNodeId
             setLines((prev) => [...prev]);   
         } else if (bezierCurvePointIsDraggingRef.current.isDragging && bezierCurvePointIsDraggingRef.current.point === "endNode") {
             let delta={
@@ -685,7 +669,7 @@ function SvgCanvas(props) {
             focusingLine.cpy1 -= delta.dy;
             focusingLine.cpx2 -= delta.dx;
             focusingLine.cpy2 -= delta.dy;
-            handleLineChangeNode(false); // false 更改 endNodeId
+            handleLineChangeNode(false); // false 時更改 endNodeId
             setLines((prev) => [...prev]);
         }
     }
@@ -859,7 +843,7 @@ function SvgCanvas(props) {
                         }
                     );
                 }}
-                onPointerDown={(e) => {
+                onPointerDown={() => {
                     handleSvgCanvasMouseDown();
                     resetSvgCanvas();
                 }}
@@ -873,7 +857,7 @@ function SvgCanvas(props) {
                 onPointerUp={(e) =>{
                     handleSvgCanvasMouseUp(e);
                     handleTransformUp(e);
-                    handleLineBezierCurveUp();
+                    handleLineBezierCurveUp(e);
                     handleLineUp(e);
                 }}
             >                 
@@ -991,7 +975,7 @@ function SvgCanvas(props) {
                                 e.stopPropagation();
                                 setIsTexting(false);
                             }}                       
-                            >
+                        >
                             <WrapperNodeContent
                                 id={"nodeContent-" + circle.id}
                             >    
@@ -1009,43 +993,43 @@ function SvgCanvas(props) {
                     </GroupWrapper>
                 )}
                 <GroupWrapper display={ useCirclePackage && selectedCircle.id !== "default" || isTexting && selectedCircle.id !== "default" ? "block" : "none" }>
-                { !useNodeToolSideBar ? 
-                    <ForeignObjectNodeTool
-                        x={selectedCircle.cx - 140} 
-                        y={selectedCircle.cy - (selectedCircle.r + 220)}
-                        width={280} 
-                        height={220}
-                    >
-                        <ToolBar 
-                            selectedCircle={selectedCircle}
-                            circles={circles}
-                            setCircles={setCircles}
-                            useNodeToolSideBar={useNodeToolSideBar}
-                            setUseNodeToolSideBar={setUseNodeToolSideBar}
-                            isTexting={isTexting}
-                            setIsTexting={setIsTexting}
-                            useCommentBoard={useCommentBoard}
-                            setUseCommentBoard={setUseCommentBoard}
-                            useCirclePackage={useCirclePackage}
-                            setUseCirclePackage={setUseCirclePackage}
-                        />
-                    </ForeignObjectNodeTool>
-                    :
-                    <ForeignObjectNodeTool
-                        x={selectedCircle.cx - 10} 
-                        y={selectedCircle.cy - (selectedCircle.r + 35)}
-                        width={20} 
-                        height={20}
-                    >
-                        <CreateNode
-                            className="top" 
-                            title={"Drag and Drop to add newNode"}
-                            onPointerDown={handleAddNode}
+                    { !useNodeToolSideBar ? 
+                        <ForeignObjectNodeTool
+                            x={selectedCircle.cx - 140} 
+                            y={selectedCircle.cy - (selectedCircle.r + 220)}
+                            width={280} 
+                            height={220}
                         >
-                            <BsNodePlusFill size={20}></BsNodePlusFill>
-                        </CreateNode>
-                    </ForeignObjectNodeTool>
-                }
+                            <ToolBar 
+                                selectedCircle={selectedCircle}
+                                circles={circles}
+                                setCircles={setCircles}
+                                useNodeToolSideBar={useNodeToolSideBar}
+                                setUseNodeToolSideBar={setUseNodeToolSideBar}
+                                isTexting={isTexting}
+                                setIsTexting={setIsTexting}
+                                useCommentBoard={useCommentBoard}
+                                setUseCommentBoard={setUseCommentBoard}
+                                useCirclePackage={useCirclePackage}
+                                setUseCirclePackage={setUseCirclePackage}
+                            />
+                        </ForeignObjectNodeTool>
+                        :
+                        <ForeignObjectNodeTool
+                            x={selectedCircle.cx - 10} 
+                            y={selectedCircle.cy - (selectedCircle.r + 35)}
+                            width={20} 
+                            height={20}
+                        >
+                            <CreateNode
+                                className="top" 
+                                title={"Drag and Drop to add newNode"}
+                                onPointerDown={handleAddNode}
+                            >
+                                <BsNodePlusFill size={20}></BsNodePlusFill>
+                            </CreateNode>
+                        </ForeignObjectNodeTool>
+                    }
                     <ForeignObjectNodeTool
                         x={selectedCircle.cx + (selectedCircle.r + 15)} 
                         y={selectedCircle.cy - 10}
@@ -1161,25 +1145,29 @@ function SvgCanvas(props) {
                         id={"startNode"} 
                         cx={focusingLine.x1} 
                         cy={focusingLine.y1}
+                        r={bezierCurvePointIsDraggingRef.current.point === "startNode" ? 10 : 5}
                         onPointerDown={(e) => handleLineBezierCurveDown(e)}
                         onPointerUp={handleLineChangeNodeUp} 
                     />
                     <CircleToBezier 
                         id={"BezierP1"} 
                         cx={focusingLine.cpx1} 
-                        cy={focusingLine.cpy1} 
+                        cy={focusingLine.cpy1}
+                        r={bezierCurvePointIsDraggingRef.current.point === "BezierP1" ? 10 : 5} 
                         onPointerDown={(e) => handleLineBezierCurveDown(e)}
                     />
                     <CircleToBezier
                         id={"BezierP2"} 
                         cx={focusingLine.cpx2} 
-                        cy={focusingLine.cpy2} 
+                        cy={focusingLine.cpy2}
+                        r={bezierCurvePointIsDraggingRef.current.point === "BezierP2" ? 10 : 5}  
                         onPointerDown={(e) => handleLineBezierCurveDown(e)}
                     />
                     <CircleToSetLine
                         id={"endNode"} 
                         cx={focusingLine.x2} 
                         cy={focusingLine.y2}
+                        r={bezierCurvePointIsDraggingRef.current.point === "endNode" ? 10 : 5}
                         onPointerDown={(e) => handleLineBezierCurveDown(e)}
                         onPointerUp={handleLineChangeNodeUp}
                     />
@@ -1193,7 +1181,6 @@ function SvgCanvas(props) {
                     >
                         <Message 
                                 selectedCircle={selectedCircle}
-                                circles={circles}
                                 setCircles={setCircles}
                             />
                     </foreignObject>
@@ -1207,9 +1194,6 @@ function SvgCanvas(props) {
                 setSvgPanMode={setSvgPanMode}
                 svgIsDragging={svgIsDragging}
                 setSvgIsDragging={setSvgIsDragging}
-                handleSvgCanvasMouseDown={handleSvgCanvasMouseDown}
-                handleSvgCanvasMove={handleSvgCanvasMove}
-                handleSvgCanvasMouseUp={handleSvgCanvasMouseUp}
             />
             <Zoom
                 svgRef={svgRef} 
@@ -1221,7 +1205,6 @@ function SvgCanvas(props) {
             {useNodeToolSideBar ?             
                 <ToolBar 
                     selectedCircle={selectedCircle}
-                    circles={circles}
                     setCircles={setCircles}
                     useNodeToolSideBar={useNodeToolSideBar}
                     setUseNodeToolSideBar={setUseNodeToolSideBar}
@@ -1232,7 +1215,8 @@ function SvgCanvas(props) {
                     useCirclePackage={useCirclePackage}
                     setUseCirclePackage={setUseCirclePackage}
                 />
-                : "" }
+                : "" 
+            }
         </Main>
     )
 }
@@ -1256,7 +1240,7 @@ const Svg = styled.svg`
     cursor: ${props => props.panMode.grab};
     border: 1px solid #cccccc;
     background-color: var(--color-SVG-background-gray);
-    height: calc(100vh - 105px);
+    height: calc(100vh - 115px);
     width: 100%;
     outline: none;
     background-image: url(${svgbg});
@@ -1276,6 +1260,7 @@ const GroupWrapper = styled.g`
 const CircleSvg = styled.circle`
     cursor: ${props => props.cursor || "auto"};
 `
+
 const PathSvg = styled.path`
     cursor: ${props => props.cursor || "pointer"};
     :hover{
@@ -1356,13 +1341,11 @@ const CreateNode = styled.button`
 `
 
 const CircleToSetLine = styled.circle`
-    r: 5;
     fill: #3cc6b8;
     stroke: #551a1a;
     stroke-width: 1;
     cursor: pointer;
     :active{
-        r: 10;
         fill: #ee3b65;
     }
 `

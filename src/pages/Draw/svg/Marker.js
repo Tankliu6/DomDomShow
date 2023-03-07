@@ -1,8 +1,5 @@
 import React from "react";
 
-
-
-
 function Marker(){
     return (
     <defs>
@@ -41,7 +38,6 @@ function Marker(){
     </defs> 
     )
 }
-
 
 export default Marker;
 

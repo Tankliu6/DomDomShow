@@ -1,21 +1,15 @@
 import styled from "styled-components";
-import React, { useRef, useState, useEffect } from "react";
-import {
-    MEDIA_QUERY_MIN_360,
-    MEDIA_QUERY_MIN_768,
-    MEDIA_QUERY_MIN_1080,
-    MEDIA_QUERY_MIN_1200,
-    MEDIA_QUERY_MAX_1200,
-} from "../global/constant/media";
-import { db, auth } from "../firebase";
+import React, { useState, useEffect } from "react";
+import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import media from "../global/constant/media";
+import { ButtonShared } from "../global/style/sharedStyledComponents";
 import { HiOutlineMenuAlt4 } from "react-icons/hi";
 import { RxCross1 } from "react-icons/rx";
 
 const Header = (props) => {
-    const { isLoggedIn, setIsLoggedIn, isLoading, setIsLoading } = props;
+    const { isLoggedIn, setIsLoggedIn } = props;
     const [dropDawnListDisplay, setDropDawnListDisplay] = useState("none");
     const [dropDawnListShowing, setDropDawnListShowing] = useState(false);
     const navigate = useNavigate();
@@ -33,11 +27,13 @@ const Header = (props) => {
             .then(() => {
                 // logout ok
                 setIsLoggedIn(false);
+                navigate("/");
                 console.log("logout");
             })
             .catch((error) => {
                 // error
                 setIsLoggedIn(false);
+                navigate("/");
                 console.log(error.message);
             });
     }
@@ -67,20 +63,20 @@ const Header = (props) => {
                         isLoggedIn={isLoggedIn}
                     ></MyDrawWrapper>
                     {!isLoggedIn && (
-                        <Auth onClick={handleMemberAuth}>
+                        <AuthButton onClick={handleMemberAuth}>
                             Login/Signup
                             <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                                 <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
                             </ArrowSvgWhite>
-                        </Auth>
+                        </AuthButton>
                     )}
                     {isLoggedIn && (
-                        <Auth className={isLoggedIn ? "active" : ""} onClick={handleMemberLogout}>
+                        <AuthButton className={isLoggedIn ? "active" : ""} onClick={handleMemberLogout}>
                             Logout
                             <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                                 <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
                             </ArrowSvgWhite>
-                        </Auth>
+                        </AuthButton>
                     )}
                 </NavRight>
                 {   
@@ -103,20 +99,20 @@ const Header = (props) => {
                 >
                 </MyDrawWrapper>
                 {!isLoggedIn && (
-                    <Auth onClick={handleMemberAuth}>
+                    <AuthButton onClick={handleMemberAuth}>
                         Login/Signup
                         <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                             <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
                         </ArrowSvgWhite>
-                    </Auth>
+                    </AuthButton>
                 )}
                 {isLoggedIn && (
-                    <Auth className={isLoggedIn ? "active" : ""} onClick={handleMemberLogout}>
+                    <AuthButton className={isLoggedIn ? "active" : ""} onClick={handleMemberLogout}>
                         Logout
                         <ArrowSvgWhite xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                             <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
                         </ArrowSvgWhite>
-                    </Auth>
+                    </AuthButton>
                 )}
             </DropDawnList>
         </Nav>
@@ -134,12 +130,12 @@ const MyDrawWrapper = (props) => {
         }
     }
     return (
-        <MyDraw onClick={handleRedirectToMemberPage}>
+        <Button onClick={handleRedirectToMemberPage}>
             MyDraw
             <ArrowSvgBlack xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
             </ArrowSvgBlack>
-        </MyDraw>
+        </Button>
         )
 };
 
@@ -157,12 +153,12 @@ function PlaygroundWrapper() {
         navigate("/Draw/playground");
     }
     return (
-        <Playground onClick = {handleNavigateToPlayground}>
+        <Button onClick = {handleNavigateToPlayground}>
             Playground
             <ArrowSvgBlack xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <path d="M0 256C0 397.4 114.6 512 256 512s256-114.6 256-256S397.4 0 256 0S0 114.6 0 256zM297 385c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l71-71L120 280c-13.3 0-24-10.7-24-24s10.7-24 24-24l214.1 0-71-71c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0L409 239c9.4 9.4 9.4 24.6 0 33.9L297 385z" />
             </ArrowSvgBlack>
-        </Playground>
+        </Button>
     )
 }
 
@@ -189,10 +185,10 @@ const Wrapper = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    ${MEDIA_QUERY_MIN_1200} {
+    ${media.MEDIA_QUERY_MIN_1200} {
         width: 1200px;
     }
-    ${MEDIA_QUERY_MAX_1200} {
+    ${media.MEDIA_QUERY_MAX_1200} {
         width: 1200px;
     }
 `;
@@ -213,20 +209,13 @@ const NavRight = styled.div`
     }
 `;
 
-const MyDraw = styled.div`
-    display: flex;
+const Button = styled(ButtonShared)`
     align-items: center;
     color: #000000;
     background-color: #ffffff;
-    border: 2px solid #000000;
-    box-shadow: 0 2px #000000;
-    padding: 10px;
     margin-right: 10px;
     border-radius: 20px;
-    cursor: pointer;
-    :hover {
-        box-shadow: 0 0px #000000;
-    }
+    margin-top: 0;
 `;
 
 const ArrowSvgBlack = styled.svg`
@@ -234,23 +223,20 @@ const ArrowSvgBlack = styled.svg`
     height: 20px;
 `
 
-export const ArrowSvgWhite = styled(ArrowSvgBlack)`
+const ArrowSvgWhite = styled(ArrowSvgBlack)`
     fill: white;
 `
 
-const Auth = styled(MyDraw)`
+const AuthButton = styled(ButtonShared)`
     text-align: center;
     color: #ffffff;
     background-color: var(--color-button-red);
     border: 2px solid #000000;
+    margin-top: 0px;
     &.active{
         background-color: var(--color-button-blue);
     }
 `;
-
-const Playground = styled(MyDraw)`
-
-`
 
 const Hamburger = styled.div`
     display: none;
@@ -269,17 +255,15 @@ const DropDawnList = styled.div`
         // flex || none
         display: ${props => props.display || none};
         flex-direction: column;
-        gap: 15px;
+        gap: 20px;
         position: absolute;
         top: 104px;
         right: 0;
-        height: 200px !important;
-        width: 200px !important;
         padding: 20px;
         z-index: 900;
         background-color: #ffffff;
         border-radius: 10px;
-        border: 2px solid #000000;
+        border: 3px solid #000000;
         div{
             display: flex;
             justify-content: space-between;

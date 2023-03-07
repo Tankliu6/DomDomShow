@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { useLocation } from "react-router-dom";
+import { db, auth } from "../../../firebase";
+import { doc, setDoc } from "firebase/firestore";
+import html2canvas from "html2canvas";
 import { TfiSave } from "react-icons/tfi";
 import { HiRefresh } from "react-icons/hi";
 import { BsExclamation } from "react-icons/bs";
-import { doc, setDoc } from "firebase/firestore";
-import { db, auth } from "../../../firebase";
-import { useLocation } from "react-router-dom";
-import html2canvas from "html2canvas";
 
 function TitleBoard(props) {
     const { viewBoxOrigin, SVGSize, circles, lines, title, setTitle } = props

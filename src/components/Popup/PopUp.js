@@ -11,11 +11,7 @@ function PopUp(props){
     )    
 }
 
-
-
 export default PopUp
-
-
 
 // styled-component
 const Wrapper = styled.div`

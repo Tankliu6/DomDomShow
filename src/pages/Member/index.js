@@ -1,31 +1,30 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import styled from "styled-components";
-import { v4 as uuid} from "uuid";
-import { useParams, useNavigate } from "react-router-dom";
+import { db } from "../../firebase";
+import { doc, collection, addDoc, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../components/AuthContext";
+import media from "../../global/constant/media";
 import { VscTrash } from "react-icons/vsc";
 import { TbZoomInArea } from "react-icons/tb";
 import { MdFullscreenExit } from "react-icons/md";
-import { doc, collection, addDoc, query, where, getDocs, deleteDoc } from "firebase/firestore";
-import { db, auth } from "../../firebase";
 import backgroundImg from "../../img/member-background.png"
 import ContainerBackground from "../../img/memberBackground.png" 
-import media from "../../global/constant/media";
 import garbageIcon from "../../img/garbage.gif";
-import nothing from "../../img/nothing.gif";
-import nothing2 from "../../img/nothing2.gif";
-import nothing3 from "../../img/nothing3.gif"; 
-import nothing4 from "../../img/nothing4.gif";
-import { AuthContext } from "../../components/AuthContext";
+import random from "../../img/random.gif";
+import random2 from "../../img/random2.gif";
+import random3 from "../../img/random3.gif"; 
+import random4 from "../../img/random4.gif";
 
 function Member(props) {
     const { isLoading, setIsLoading } = props;
-    const navigate = useNavigate();
+    const gifRef = useRef([random, random2, random3, random4])
+    const userId = useContext(AuthContext);
     const [historyCards, setHistoryCards] = useState([]);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deletingId, setDeletingId] = useState();
     const [zoomInUrl, setZoomInUrl] = useState();
-    const gifRef = useRef([nothing, nothing2, nothing3, nothing4])
-    const userId = useContext(AuthContext);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!userId) {
@@ -240,7 +239,7 @@ const Container = styled.div`
     display: flex;
     justify-content: center;
     width: 100%;
-    min-height: calc(100vh - 104px);
+    min-height: calc(100vh - 114px);
     background-color: #fff4b1ad;
     padding: 0 50px 0 50px;
     box-shadow: 5px 5px 5px #d4ceb2c7;

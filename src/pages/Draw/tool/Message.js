@@ -1,9 +1,8 @@
-import React, {useState} from "react";
+import React from "react";
 import styled from "styled-components";
 
-
 function Message(props){
-    const { selectedCircle, circles, setCircles } = props;
+    const { selectedCircle, setCircles } = props;
     function handleNoteTitle(e){
         e.stopPropagation();
         selectedCircle.title = e.target.value;
@@ -26,7 +25,6 @@ function Message(props){
 }
 
 export default Message;
-
 
 // styled-component
 const Wrapper = styled.div`
@@ -71,16 +69,14 @@ const Title = styled.input`
     margin-bottom: 5px;
     background-color: #000000;
     color: #ffffff;
-    ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    ::placeholder {
     color: #9eadba;
-    opacity: 1; /* Firefox */
+    opacity: 1;
     }
-
-    :-ms-input-placeholder { /* Internet Explorer 10-11 */
+    :-ms-input-placeholder {
     color: #9eadba;
     }
-
-    ::-ms-input-placeholder { /* Microsoft Edge */
+    ::-ms-input-placeholder {
     color: #9eadba;
     }
 `
@@ -96,16 +92,14 @@ const TextArea = styled.textarea`
     margin-bottom: 10px;
     background-color: #000000;
     color: #ffffff;
-    ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    ::placeholder {
     color: #9eadba;
-    opacity: 1; /* Firefox */
+    opacity: 1;
     }
-
-    :-ms-input-placeholder { /* Internet Explorer 10-11 */
+    :-ms-input-placeholder {
     color: #9eadba;
     }
-
-    ::-ms-input-placeholder { /* Microsoft Edge */
+    ::-ms-input-placeholder {
     color: #9eadba;
     }
 `
