@@ -22,7 +22,7 @@ const Welcome = (props) => {
         if (isLoggedIn) {
             navigate("/");
         } else if (!isLoggedIn) {
-            navigate("/login");
+            navigate("/account");
         }
     }
 

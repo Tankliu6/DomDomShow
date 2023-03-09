@@ -18,7 +18,7 @@ const Header = (props) => {
         if (isLoggedIn) {
             navigate("/");
         } else if (!isLoggedIn) {
-            navigate("/login");
+            navigate("/account");
         }
     }
 
@@ -126,7 +126,7 @@ const MyDrawWrapper = (props) => {
         if (isLoggedIn) {
             navigate("/member/collection");
         } else {
-            navigate("/login");
+            navigate("/account");
         }
     }
     return (

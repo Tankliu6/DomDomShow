@@ -7,7 +7,7 @@ import media from "../../global/constant/media";
 import backgroundImg from "../../img/signinup-background-01.png";
 import handshakeImg from "../../img/handshake.png";
 
-function SingInUp(props){
+function Account(props){
     const {
         isLoggedIn, 
         setIsLoggedIn, 
@@ -59,7 +59,7 @@ function SingInUp(props){
     )
 }
 
-export default SingInUp;
+export default Account;
 
 // styled-component
 const Wrapper = styled.div`

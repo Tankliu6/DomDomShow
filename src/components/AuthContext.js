@@ -19,7 +19,7 @@ const AuthContextProvider = (props) => {
                     setIsLoggedIn(true);
                 } catch (e) {
                     setIsLoggedIn(false);
-                    if (location.pathname.split("/")[2] === "playground" || location.pathname.split("/")[1] === "login") {
+                    if (location.pathname.split("/")[2] === "playground" || location.pathname.split("/")[1] === "account") {
                         console.log("No Auth-ok-page")
                     } else {
                         console.log("AuthContext Not Signed-in user" + e);
