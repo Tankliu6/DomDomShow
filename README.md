@@ -1,7 +1,7 @@
 
 # DomDomShow
 
-🎨 DomDomShow is a web-based tool that lets you easily create and share your own presentations.
+🎨 DomDomShow is a web-based tool that lets you easily create your own mind map.
 
 # Live Demo
 🔗 Check out our live demo to see DomDomShow in action: [Live Demo](https://domdomshow-tw.web.app/)
