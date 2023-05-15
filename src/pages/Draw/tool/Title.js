@@ -18,41 +18,37 @@ function TitleBoard(props) {
     const isPlayground = location.pathname.split("/")[2];
     const canvasId = location.pathname.split("/")[3];
 
-    function handleSave(e){
+    async function handleSave(e){
+        if (isSaving) return;
         e.stopPropagation();
         setIsSaving(true);
+        
+        try {
+            await setDoc(doc(db, "canvas", canvasId), {
+                viewBoxOrigin: viewBoxOrigin,
+                SVGSize: SVGSize,
+                circles: circles, 
+                lines: lines,
+                title: title
+            })
 
-        const saveData = async () => {
-            setIsSaving(true);
-            try {
-                await setDoc(doc(db, "canvas", canvasId), {
-                    viewBoxOrigin: viewBoxOrigin,
-                    SVGSize: SVGSize,
-                    circles: circles, 
-                    lines: lines,
-                    title: title
+            const handleCapture = async () => {
+                const canvas = await html2canvas(document.body, {foreignObjectRendering: true})
+                const url = canvas.toDataURL("image/png");
+                await setDoc(doc(db, "user", canvasId), {
+                    title: title,
+                    userId: auth.currentUser.uid,
+                    previewUrl: url
                 })
-                
-                const handleCapture = async () => {
-                    const canvas = await html2canvas(document.body, {foreignObjectRendering: true})
-                    const url = canvas.toDataURL("image/png");
-                    await setDoc(doc(db, "user", canvasId), {
-                        title: title,
-                        userId: auth.currentUser.uid,
-                        previewUrl: url
-                    })
-                }
-
-                handleCapture();
-
-                setSaved(true);
-            } catch (e) {
-                console.log(e);
-            } finally {
-                setIsSaving(false);
             }
+
+            handleCapture();
+            setSaved(true);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setIsSaving(false);
         }
-        saveData();
     }
 
     function handleTitle(e){

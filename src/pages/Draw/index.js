@@ -861,8 +861,8 @@ function SvgCanvas(props) {
                     handleLineUp(e);
                 }}
             >                 
-                {lines.map((line, index) => 
-                    <GroupWrapper key={index}>                       
+                {lines.map(line => 
+                    <GroupWrapper key={line.id}>                       
                         <PathSvg
                             id={line.id}
                             d={`M ${line.x1} ${line.y1} C ${line.cpx1} ${line.cpy1}, ${line.cpx2} ${line.cpy2}, ${line.x2} ${line.y2}`}
@@ -881,8 +881,8 @@ function SvgCanvas(props) {
                         </PathSvg>
                     </GroupWrapper>
                 )}
-                {circles.map((circle, index) => 
-                    <GroupWrapper key={index}>
+                {circles.map(circle => 
+                    <GroupWrapper key={circle.id}>
                         <CircleSvg
                             ref={circleRef}
                             cx={circle.cx}
